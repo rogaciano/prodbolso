@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Cliente - Bolso Niran{% endblock %}
+
+{% block header %}{% if form.instance.pk %}Editar{% else %}Novo{% endif %} Cliente{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:p-6">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+        <div class="sm:col-span-3">
+          {{ form.nome|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.contato|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.email|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-6">
+          {{ form.endereco|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-6">
+          {{ form.observacoes|as_crispy_field }}
+        </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end space-x-3">
+        <a href="{% url 'clientes:list' %}" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+          Cancelar
+        </a>
+        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Salvar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ funcionario.nome }} - Bolso Niran{% endblock %}
+
+{% block header %}Detalhes do Funcionário{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">{{ funcionario.nome }}</h2>
+    <div class="flex space-x-2">
+      <a href="{% url 'funcionarios:update' funcionario.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+        <i class="fas fa-edit mr-2"></i> Editar
+      </a>
+      <a href="{% url 'funcionarios:delete' funcionario.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+        <i class="fas fa-trash mr-2"></i> Excluir
+      </a>
+    </div>
+  </div>
+  <div class="border-t border-gray-200">
+    <dl>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Nome</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ funcionario.nome }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Contato</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ funcionario.contato }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Email</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ funcionario.email|default:"-" }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Data de Admissão</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ funcionario.data_admissao|date:"d/m/Y" }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Status</dt>
+        <dd class="mt-1 sm:mt-0 sm:col-span-2">
+          <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if funcionario.ativo %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+            {{ funcionario.ativo|yesno:"Ativo,Inativo" }}
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<!-- Produções do Funcionário -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Histórico de Produção</h2>
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordem</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Início</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conclusão</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Bolsos</th>
+          <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for producao in funcionario.producaoos_set.all %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ producao.ordem_servico.ficha }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ producao.ordem_servico.cliente.nome }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ producao.data_inicio|date:"d/m/Y" }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ producao.data_conclusao|date:"d/m/Y"|default:"-" }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ producao.total_bolsos }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <a href="{% url 'ordens_servico:detail' producao.ordem_servico.id %}" class="text-blue-600 hover:text-blue-900">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+              Este funcionário não possui produções registradas.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Resumo de Produção -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Resumo de Produção</h2>
+  </div>
+  <div class="border-t border-gray-200">
+    <dl>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Total de Produções</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ funcionario.producaoos_set.count }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Total de Bolsos Produzidos</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ funcionario.total_bolsos_produzidos }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Média de Bolsos por Ordem</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+          {% if funcionario.producaoos_set.count > 0 %}
+            {{ funcionario.media_bolsos_por_ordem|floatformat:1 }}
+          {% else %}
+            -
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<div class="mt-6 flex justify-between">
+  <a href="{% url 'funcionarios:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
+  </a>
+</div>
+{% endblock %}

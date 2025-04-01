@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ cliente.nome }} - Bolso Niran{% endblock %}
+
+{% block header %}Detalhes do Cliente{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">{{ cliente.nome }}</h2>
+    <div class="flex space-x-2">
+      <a href="{% url 'clientes:update' cliente.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+        <i class="fas fa-edit mr-2"></i> Editar
+      </a>
+      <a href="{% url 'clientes:delete' cliente.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+        <i class="fas fa-trash mr-2"></i> Excluir
+      </a>
+    </div>
+  </div>
+  <div class="border-t border-gray-200">
+    <dl>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Nome</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.nome }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Contato</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.contato }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Email</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.email|default:"-" }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Endereço</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.endereco|default:"-" }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Data de Cadastro</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.data_cadastro|date:"d/m/Y" }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Observações</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.observacoes|default:"-"|linebreaks }}</dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<!-- Ordens de Serviço do Cliente -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Ordens de Serviço</h2>
+    <a href="{% url 'ordens_servico:create' %}?cliente={{ cliente.id }}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+      <i class="fas fa-plus mr-2"></i> Nova Ordem
+    </a>
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ficha</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+          <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for ordem in cliente.ordemservico_set.all %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ ordem.ficha }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ ordem.data_criacao|date:"d/m/Y" }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                {% if ordem.status == 'pendente' %}bg-yellow-100 text-yellow-800
+                {% elif ordem.status == 'em_producao' %}bg-blue-100 text-blue-800
+                {% elif ordem.status == 'finalizado' %}bg-green-100 text-green-800
+                {% elif ordem.status == 'entregue' %}bg-purple-100 text-purple-800
+                {% elif ordem.status == 'cancelado' %}bg-red-100 text-red-800{% endif %}">
+                {{ ordem.get_status_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">R$ {{ ordem.valor_total|floatformat:2 }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <a href="{% url 'ordens_servico:detail' ordem.id %}" class="text-blue-600 hover:text-blue-900">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+              Este cliente não possui ordens de serviço.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="mt-6 flex justify-between">
+  <a href="{% url 'clientes:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
+  </a>
+</div>
+{% endblock %}

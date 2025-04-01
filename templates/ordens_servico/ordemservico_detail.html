@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load ordem_servico_tags %}
+
+{% block title %}Ordem de Serviço #{{ ordem.ficha }} - Bolso Niran{% endblock %}
+
+{% block header %}Ordem de Serviço #{{ ordem.ficha }}{% endblock %}
+
+{% block content %}
+<!-- Status Banner -->
+<div class="mb-6 rounded-md p-4 
+  {% if ordem.status == 'pendente' %}bg-yellow-50 border border-yellow-300
+  {% elif ordem.status == 'em_producao' %}bg-blue-50 border border-blue-300
+  {% elif ordem.status == 'finalizado' %}bg-green-50 border border-green-300
+  {% elif ordem.status == 'entregue' %}bg-purple-50 border border-purple-300
+  {% elif ordem.status == 'cancelado' %}bg-red-50 border border-red-300{% endif %}">
+  <div class="flex">
+    <div class="flex-shrink-0">
+      <i class="fas 
+        {% if ordem.status == 'pendente' %}fa-clock text-yellow-400
+        {% elif ordem.status == 'em_producao' %}fa-hammer text-blue-400
+        {% elif ordem.status == 'finalizado' %}fa-check-circle text-green-400
+        {% elif ordem.status == 'entregue' %}fa-truck text-purple-400
+        {% elif ordem.status == 'cancelado' %}fa-times-circle text-red-400{% endif %}"></i>
+    </div>
+    <div class="ml-3">
+      <h3 class="text-sm font-medium 
+        {% if ordem.status == 'pendente' %}text-yellow-800
+        {% elif ordem.status == 'em_producao' %}text-blue-800
+        {% elif ordem.status == 'finalizado' %}text-green-800
+        {% elif ordem.status == 'entregue' %}text-purple-800
+        {% elif ordem.status == 'cancelado' %}text-red-800{% endif %}">
+        Status: {{ ordem.get_status_display }}
+      </h3>
+      <div class="mt-2 text-sm 
+        {% if ordem.status == 'pendente' %}text-yellow-700
+        {% elif ordem.status == 'em_producao' %}text-blue-700
+        {% elif ordem.status == 'finalizado' %}text-green-700
+        {% elif ordem.status == 'entregue' %}text-purple-700
+        {% elif ordem.status == 'cancelado' %}text-red-700{% endif %}">
+        <p>
+          {% if ordem.status == 'pendente' %}
+            Esta ordem está aguardando início da produção.
+          {% elif ordem.status == 'em_producao' %}
+            Esta ordem está em produção desde {{ ordem.producao.data_inicio|date:"d/m/Y" }}.
+          {% elif ordem.status == 'finalizado' %}
+            Produção concluída em {{ ordem.producao.data_conclusao|date:"d/m/Y" }}, aguardando entrega.
+          {% elif ordem.status == 'entregue' %}
+            Entregue em {{ ordem.producao.data_entrega|date:"d/m/Y" }}.
+            {% if ordem.pago %}
+              <span class="font-medium text-green-700">Pagamento recebido.</span>
+            {% else %}
+              <span class="font-medium text-red-700">Pagamento pendente.</span>
+            {% endif %}
+          {% elif ordem.status == 'cancelado' %}
+            Esta ordem foi cancelada.
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="mb-6 flex flex-wrap justify-end gap-2">
+  <a href="{% url 'ordens_servico:edit' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+    <i class="fas fa-edit mr-2"></i> Editar
+  </a>
+  
+  {% if ordem.status == 'pendente' %}
+    <a href="{% url 'ordens_servico:producao_add' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+      <i class="fas fa-play mr-2"></i> Iniciar Produção
+    </a>
+  {% endif %}
+  
+  {% if ordem|has_attr:'producao' and ordem.status == 'em_producao' and not ordem.producao.data_conclusao %}
+    <form method="post" action="{% url 'ordens_servico:producao_finalizar' ordem.producao.id %}" class="inline">
+      {% csrf_token %}
+      <button type="submit" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        <i class="fas fa-check mr-2"></i> Finalizar Produção
+      </button>
+    </form>
+  {% endif %}
+  
+  {% if ordem|has_attr:'producao' and ordem.producao.data_conclusao and not ordem.producao.data_entrega %}
+    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" onclick="document.getElementById('modal-entrega').classList.remove('hidden')">
+      <i class="fas fa-truck mr-2"></i> Registrar Entrega
+    </button>
+  {% endif %}
+  
+  {% if ordem.status == 'pendente' or ordem.status == 'cancelado' %}
+    <a href="{% url 'ordens_servico:delete' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+      <i class="fas fa-trash mr-2"></i> Excluir
+    </a>
+  {% endif %}
+</div>
+
+<!-- Main Details -->
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Detalhes da Ordem</h2>
+  </div>
+  <div class="border-t border-gray-200">
+    <dl>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Cliente</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+          <a href="{% url 'clientes:detail' ordem.cliente.id %}" class="text-blue-600 hover:text-blue-900">
+            {{ ordem.cliente.nome }}
+          </a>
+        </dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Número da Ficha</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.ficha }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Data de Criação</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.data_criacao|date:"d/m/Y" }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Data de Entrega Prevista</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.data_entrega_prevista|date:"d/m/Y" }}</dd>
+      </div>
+      
+      {% if ordem.status == 'entregue' and ordem.pago %}
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Forma de Pagamento</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.get_forma_pagamento_display }}</dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Data de Pagamento</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.data_pagamento|date:"d/m/Y" }}</dd>
+        </div>
+      {% endif %}
+      
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Valor Total</dt>
+        <dd class="mt-1 text-sm font-bold text-gray-900 sm:mt-0 sm:col-span-2">R$ {{ ordem.valor_total|floatformat:2 }}</dd>
+      </div>
+      
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Observações</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.observacoes|default:"-"|linebreaks }}</dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<!-- Items Section -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Itens da Ordem</h2>
+    {% if ordem.status == 'pendente' %}
+      <a href="{% url 'ordens_servico:item_add' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <i class="fas fa-plus mr-2"></i> Adicionar Item
+      </a>
+    {% endif %}
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Bolso</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Unitário</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+          {% if ordem.status == 'pendente' %}
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for item in ordem.itens.all %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ item.tipo_bolso.nome }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ item.quantidade }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">R$ {{ item.valor_unitario|floatformat:2 }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-semibold text-gray-900">R$ {{ item.subtotal|floatformat:2 }}</div>
+            </td>
+            {% if ordem.status == 'pendente' %}
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="{% url 'ordens_servico:item_edit' item.id %}" class="text-yellow-600 hover:text-yellow-900 mr-3">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'ordens_servico:item_delete' item.id %}" class="text-red-600 hover:text-red-900">
+                  <i class="fas fa-trash"></i>
+                </a>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if ordem.status == 'pendente' %}5{% else %}4{% endif %}" class="px-6 py-4 text-center text-sm text-gray-500">
+              Nenhum item adicionado à ordem.
+            </td>
+          </tr>
+        {% endfor %}
+        {% if ordem.itens.exists %}
+          <tr class="bg-gray-50">
+            <td colspan="3" class="px-6 py-4 text-right text-sm font-medium text-gray-900">Total:</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-bold text-gray-900">R$ {{ ordem.valor_total|floatformat:2 }}</div>
+            </td>
+            {% if ordem.status == 'pendente' %}
+              <td></td>
+            {% endif %}
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Production Details -->
+{% if ordem|has_attr:'producao' %}
+  <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+      <h2 class="text-lg leading-6 font-medium text-gray-900">Detalhes da Produção</h2>
+    </div>
+    <div class="border-t border-gray-200">
+      <dl>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Funcionário</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <a href="{% url 'funcionarios:detail' ordem.producao.funcionario.id %}" class="text-blue-600 hover:text-blue-900">
+              {{ ordem.producao.funcionario.nome }}
+            </a>
+          </dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Data de Início</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.producao.data_inicio|date:"d/m/Y" }}</dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Data de Conclusão</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.producao.data_conclusao|date:"d/m/Y"|default:"-" }}</dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Data de Entrega</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.producao.data_entrega|date:"d/m/Y"|default:"-" }}</dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Tempo Total</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            {% if ordem.producao.data_conclusao %}
+              {{ ordem.producao.tempo_producao_dias }} dias
+            {% else %}
+              Em andamento ({{ ordem.producao.tempo_producao_atual_dias }} dias até agora)
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Modal for Delivery Registration -->
+<div id="modal-entrega" class="hidden fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+      <div>
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+          <i class="fas fa-truck text-purple-600"></i>
+        </div>
+        <div class="mt-3 text-center sm:mt-5">
+          <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+            Registrar Entrega
+          </h3>
+          <div class="mt-2">
+            <p class="text-sm text-gray-500">
+              Confirme a entrega da Ordem de Serviço #{{ ordem.ficha }} para o cliente {{ ordem.cliente.nome }}.
+            </p>
+          </div>
+        </div>
+      </div>
+      {% if ordem|has_attr:'producao' and ordem.producao %}
+      <form method="post" action="{% url 'ordens_servico:producao_entregar' ordem.producao.id %}" class="mt-5 sm:mt-6">
+      {% else %}
+      <div class="mt-5 sm:mt-6">
+        <p class="text-sm text-red-500 mb-4">Esta ordem não possui produção registrada. Registre uma produção primeiro.</p>
+      {% endif %}
+        {% csrf_token %}
+        
+        <div class="mb-4">
+          <label for="registrar_pagamento" class="block text-sm font-medium text-gray-700 mb-2">Registrar pagamento?</label>
+          <select name="registrar_pagamento" id="registrar_pagamento" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" onchange="togglePaymentOptions(this.value)">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+        
+        <div id="payment-options" class="hidden mb-4">
+          <label for="forma_pagamento" class="block text-sm font-medium text-gray-700 mb-2">Forma de Pagamento</label>
+          <select name="forma_pagamento" id="forma_pagamento" class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao_credito">Cartão de Crédito</option>
+            <option value="cartao_debito">Cartão de Débito</option>
+            <option value="pix">PIX</option>
+            <option value="transferencia">Transferência Bancária</option>
+            <option value="cheque">Cheque</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        
+        <div class="flex justify-between space-x-3">
+          <button type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:text-sm" onclick="document.getElementById('modal-entrega').classList.add('hidden')">
+            Cancelar
+          </button>
+          {% if ordem|has_attr:'producao' and ordem.producao %}
+          <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:text-sm">
+            Confirmar Entrega
+          </button>
+          {% endif %}
+        </div>
+      {% if ordem|has_attr:'producao' and ordem.producao %}
+      </form>
+      {% else %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="mt-6 flex justify-between">
+  <a href="{% url 'ordens_servico:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
+  </a>
+</div>
+
+{% block extra_js %}
+<script>
+  function togglePaymentOptions(value) {
+    const paymentOptions = document.getElementById('payment-options');
+    if (value === 'sim') {
+      paymentOptions.classList.remove('hidden');
+    } else {
+      paymentOptions.classList.add('hidden');
+    }
+  }
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,12 @@
+django>=5.0.0
+django-allauth
+django-crispy-forms
+crispy-tailwind
+python-decouple
+whitenoise
+dj-database-url
+pillow
+django-htmx
+django-filter
+django-widget-tweaks
+django-simple-history

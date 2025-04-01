@@ -1,0 +1,5 @@
+-r base.txt
+
+# Production dependencies
+gunicorn
+psycopg2-binary

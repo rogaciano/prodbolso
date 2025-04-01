@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes - Bolso Niran{% endblock %}
+
+{% block header %}Clientes{% endblock %}
+
+{% block extra_css %}
+<style>
+  .autocomplete-results {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  .autocomplete-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+  }
+  .autocomplete-item:hover {
+    background-color: #f3f4f6;
+  }
+  .create-new-item {
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    color: #2563eb;
+    font-weight: 500;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Lista de Clientes</h2>
+    <a href="{% url 'clientes:add' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+      <i class="fas fa-plus mr-2"></i> Novo Cliente
+    </a>
+  </div>
+  
+  <!-- Filters -->
+  <div class="px-4 py-3 bg-gray-50 border-t border-b border-gray-200">
+    <form method="get" class="flex flex-wrap gap-4">
+      <div class="flex-1 min-w-[200px] relative">
+        <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
+        <input type="text" name="nome" id="nome" value="{{ request.GET.nome|default:'' }}" 
+               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+               autocomplete="off">
+        <div id="autocomplete-results" class="autocomplete-results hidden"></div>
+      </div>
+      <div class="flex items-end">
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <i class="fas fa-search mr-2"></i> Filtrar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Cadastro</th>
+          <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for cliente in clientes %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ cliente.nome }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ cliente.contato }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ cliente.email }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ cliente.data_cadastro|date:"d/m/Y" }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <a href="{% url 'clientes:detail' cliente.id %}" class="text-blue-600 hover:text-blue-900 mr-3">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a href="{% url 'clientes:edit' cliente.id %}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                <i class="fas fa-edit"></i>
+              </a>
+              <a href="{% url 'clientes:delete' cliente.id %}" class="text-red-600 hover:text-red-900">
+                <i class="fas fa-trash"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+              Nenhum cliente encontrado.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div class="flex-1 flex justify-between sm:hidden">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Anterior
+          </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Próximo
+          </a>
+        {% endif %}
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Mostrando
+            <span class="font-medium">{{ page_obj.start_index }}</span>
+            a
+            <span class="font-medium">{{ page_obj.end_index }}</span>
+            de
+            <span class="font-medium">{{ page_obj.paginator.count }}</span>
+            resultados
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+              <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Anterior</span>
+                <i class="fas fa-chevron-left h-5 w-5"></i>
+              </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                  {{ num }}
+                </a>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                  {{ num }}
+                </a>
+              {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Próximo</span>
+                <i class="fas fa-chevron-right h-5 w-5"></i>
+              </a>
+            {% endif %}
+          </nav>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Quick Add Client Modal -->
+<div id="quickAddModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center border-b">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Cadastro Rápido de Cliente</h3>
+      <button type="button" id="closeModal" class="text-gray-400 hover:text-gray-500">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="quickAddForm" class="px-4 py-5 sm:p-6">
+      <div class="space-y-4">
+        <div>
+          <label for="quickNome" class="block text-sm font-medium text-gray-700">Nome</label>
+          <input type="text" id="quickNome" name="nome" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickTelefone" class="block text-sm font-medium text-gray-700">Telefone</label>
+          <input type="text" id="quickTelefone" name="telefone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickContato" class="block text-sm font-medium text-gray-700">Contato</label>
+          <input type="text" id="quickContato" name="contato" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickEmail" class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" id="quickEmail" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickEndereco" class="block text-sm font-medium text-gray-700">Endereço</label>
+          <textarea id="quickEndereco" name="endereco" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-6 flex justify-end">
+        <button type="button" id="cancelAddClient" class="inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3">
+          Cancelar
+        </button>
+        <button type="submit" class="inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Salvar Cliente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const nomeInput = document.getElementById('nome');
+    const resultsContainer = document.getElementById('autocomplete-results');
+    const quickAddModal = document.getElementById('quickAddModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelAddClient = document.getElementById('cancelAddClient');
+    const quickAddForm = document.getElementById('quickAddForm');
+    const quickNomeInput = document.getElementById('quickNome');
+    
+    // Função para buscar clientes
+    let searchTimeout;
+    nomeInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const query = this.value.trim();
+      
+      if (query.length < 2) {
+        resultsContainer.classList.add('hidden');
+        return;
+      }
+      
+      searchTimeout = setTimeout(() => {
+        fetch(`/clientes/search/?q=${encodeURIComponent(query)}`)
+          .then(response => response.json())
+          .then(data => {
+            resultsContainer.innerHTML = '';
+            
+            if (data.results.length > 0) {
+              data.results.forEach(cliente => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = cliente.nome;
+                item.addEventListener('click', () => {
+                  nomeInput.value = cliente.nome;
+                  resultsContainer.classList.add('hidden');
+                });
+                resultsContainer.appendChild(item);
+              });
+            }
+            
+            // Adicionar opção para criar novo cliente
+            const createNew = document.createElement('div');
+            createNew.className = 'create-new-item';
+            createNew.innerHTML = `<i class="fas fa-plus mr-2"></i> Cadastrar "${query}" como novo cliente`;
+            createNew.addEventListener('click', () => {
+              openQuickAddModal(query);
+            });
+            resultsContainer.appendChild(createNew);
+            
+            resultsContainer.classList.remove('hidden');
+          })
+          .catch(error => console.error('Erro ao buscar clientes:', error));
+      }, 300);
+    });
+    
+    // Fechar resultados ao clicar fora
+    document.addEventListener('click', function(e) {
+      if (!nomeInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+        resultsContainer.classList.add('hidden');
+      }
+    });
+    
+    // Funções para o modal de cadastro rápido
+    function openQuickAddModal(nome) {
+      quickNomeInput.value = nome;
+      quickAddModal.classList.remove('hidden');
+    }
+    
+    function closeQuickAddModal() {
+      quickAddModal.classList.add('hidden');
+      quickAddForm.reset();
+    }
+    
+    closeModal.addEventListener('click', closeQuickAddModal);
+    cancelAddClient.addEventListener('click', closeQuickAddModal);
+    
+    // Enviar formulário de cadastro rápido
+    quickAddForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(quickAddForm);
+      const data = Object.fromEntries(formData.entries());
+      
+      fetch('/clientes/quick-add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Atualizar o input de pesquisa e fechar o modal
+          nomeInput.value = quickNomeInput.value;
+          closeQuickAddModal();
+          
+          // Opcional: recarregar a página para mostrar o novo cliente
+          window.location.href = `/clientes/?nome=${encodeURIComponent(quickNomeInput.value)}`;
+        } else {
+          alert('Erro ao cadastrar cliente: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao cadastrar cliente:', error);
+        alert('Erro ao cadastrar cliente. Tente novamente.');
+      });
+    });
+    
+    // Função para obter o cookie CSRF
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Adicionar{% endif %} Item - Bolso Niran{% endblock %}
+
+{% block header %}{% if form.instance.pk %}Editar{% else %}Adicionar{% endif %} Item à Ordem #{{ ordem_servico.ficha }}{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Cliente: {{ ordem_servico.cliente.nome }}</h2>
+  </div>
+  <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+        <div class="sm:col-span-3">
+          {{ form.tipo_bolso|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.quantidade|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.valor_unitario|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          <label class="block text-sm font-medium text-gray-700">Subtotal</label>
+          <div class="mt-1 relative rounded-md shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-gray-500 sm:text-sm">R$</span>
+            </div>
+            <input type="text" id="subtotal" class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md bg-gray-100" readonly>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end space-x-3">
+        <a href="{% url 'ordens_servico:detail' ordem_servico.id %}" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+          Cancelar
+        </a>
+        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Salvar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/item_ordem_servico.js' %}"></script>
+<script>
+  // Função para calcular o subtotal
+  function calcularSubtotal() {
+    const quantidade = parseFloat(document.getElementById('id_quantidade').value) || 0;
+    const valorUnitario = parseFloat(document.getElementById('id_valor_unitario').value) || 0;
+    const subtotal = quantidade * valorUnitario;
+    document.getElementById('subtotal').value = subtotal.toFixed(2);
+  }
+
+  // Adicionar eventos para recalcular o subtotal quando os valores mudarem
+  document.getElementById('id_quantidade').addEventListener('input', calcularSubtotal);
+  document.getElementById('id_valor_unitario').addEventListener('input', calcularSubtotal);
+  
+  // Adicionar evento para recalcular o subtotal quando o valor unitário for preenchido automaticamente
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sobrescrever a função atualizarValorUnitario para também atualizar o subtotal
+    const originalFunction = window.atualizarValorUnitario;
+    window.atualizarValorUnitario = function(tipoBolsoId) {
+      originalFunction(tipoBolsoId);
+      // Adicionar um pequeno atraso para garantir que o valor unitário foi atualizado
+      setTimeout(calcularSubtotal, 100);
+    };
+    
+    // Calcular o subtotal inicial
+    calcularSubtotal();
+  });
+</script>
+{% endblock %}

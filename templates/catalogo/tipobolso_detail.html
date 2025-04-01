@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tipo_bolso.nome }} - Bolso Niran{% endblock %}
+
+{% block header %}Detalhes do Tipo de Bolso{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">{{ tipo_bolso.nome }}</h2>
+    <div class="flex space-x-2">
+      <a href="{% url 'catalogo:update' tipo_bolso.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+        <i class="fas fa-edit mr-2"></i> Editar
+      </a>
+      <a href="{% url 'catalogo:delete' tipo_bolso.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+        <i class="fas fa-trash mr-2"></i> Excluir
+      </a>
+    </div>
+  </div>
+  <div class="border-t border-gray-200">
+    <dl>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Nome</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ tipo_bolso.nome }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Descrição</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ tipo_bolso.descricao|default:"-"|linebreaks }}</dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Valor Padrão</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">R$ {{ tipo_bolso.valor_padrao|floatformat:2 }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Tempo Estimado de Produção</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ tipo_bolso.tempo_estimado_producao }} minutos</dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<!-- Estatísticas de Uso -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Estatísticas de Uso</h2>
+  </div>
+  <div class="border-t border-gray-200">
+    <dl>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Total de Ordens</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ tipo_bolso.itemordemservico_set.count }}</dd>
+      </div>
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Total de Unidades</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+          {% with total_unidades=tipo_bolso.total_unidades %}
+            {{ total_unidades|default:"0" }}
+          {% endwith %}
+        </dd>
+      </div>
+      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Valor Total Gerado</dt>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+          {% with valor_total=tipo_bolso.valor_total_gerado %}
+            R$ {{ valor_total|default:"0.00"|floatformat:2 }}
+          {% endwith %}
+        </dd>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<div class="mt-6 flex justify-between">
+  <a href="{% url 'catalogo:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
+  </a>
+</div>
+{% endblock %}

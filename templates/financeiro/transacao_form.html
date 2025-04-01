@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Adicionar{% endif %} Transação - Bolso Niran{% endblock %}
+
+{% block header %}{% if form.instance.pk %}Editar{% else %}Adicionar{% endif %} Transação{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Informações da Transação</h2>
+    <p class="mt-1 max-w-2xl text-sm text-gray-500">Preencha todos os campos obrigatórios.</p>
+  </div>
+  <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+        <div class="sm:col-span-3">
+          {{ form.descricao|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.tipo|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.categoria|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.valor|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.data|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.ordem_servico|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-6">
+          {{ form.observacoes|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-6">
+          {{ form.comprovante|as_crispy_field }}
+        </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end space-x-3">
+        <a href="{% url 'financeiro:list' %}" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+          Cancelar
+        </a>
+        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Salvar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.getElementById('id_tipo');
+    const categoriaSelect = document.getElementById('id_categoria');
+    const ordemServicoField = document.getElementById('div_id_ordem_servico');
+    
+    // Função para atualizar as opções da categoria com base no tipo
+    function atualizarCategorias() {
+      // Limpar opções atuais
+      categoriaSelect.innerHTML = '';
+      
+      // Adicionar opções com base no tipo selecionado
+      if (tipoSelect.value === 'receita') {
+        {% for value, label in form.instance.CATEGORIA_RECEITA_CHOICES %}
+          const option = document.createElement('option');
+          option.value = '{{ value }}';
+          option.textContent = '{{ label }}';
+          categoriaSelect.appendChild(option);
+        {% endfor %}
+        
+        // Mostrar campo de ordem de serviço
+        ordemServicoField.style.display = 'block';
+      } else if (tipoSelect.value === 'despesa') {
+        {% for value, label in form.instance.CATEGORIA_DESPESA_CHOICES %}
+          const option = document.createElement('option');
+          option.value = '{{ value }}';
+          option.textContent = '{{ label }}';
+          categoriaSelect.appendChild(option);
+        {% endfor %}
+        
+        // Esconder campo de ordem de serviço para despesas
+        ordemServicoField.style.display = 'none';
+      }
+    }
+    
+    // Atualizar categorias quando o tipo mudar
+    tipoSelect.addEventListener('change', atualizarCategorias);
+    
+    // Inicializar categorias com base no tipo atual
+    atualizarCategorias();
+    
+    // Definir data padrão como hoje se for um novo registro
+    const dataInput = document.getElementById('id_data');
+    if (!dataInput.value) {
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      dataInput.value = `${ano}-${mes}-${dia}`;
+    }
+  });
+</script>
+{% endblock %}

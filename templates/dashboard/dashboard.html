@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Bolso Niran{% endblock %}
+
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <!-- Resumo de Ordens de Serviço -->
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Ordens de Serviço</h3>
+      <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div class="bg-green-100 rounded-md p-3">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+              <i class="fas fa-check-circle text-white"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Finalizadas</p>
+              <p class="text-lg font-semibold text-gray-900">{{ total_ordens_finalizadas }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-yellow-100 rounded-md p-3">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+              <i class="fas fa-spinner text-white"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Pendentes</p>
+              <p class="text-lg font-semibold text-gray-900">{{ total_ordens_pendentes }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5">
+        <a href="{% url 'ordens_servico:list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+          Ver todas as ordens <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumo Financeiro -->
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Resumo Financeiro (Mês Atual)</h3>
+      <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div class="bg-blue-100 rounded-md p-3">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+              <i class="fas fa-arrow-down text-white"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Receitas</p>
+              <p class="text-lg font-semibold text-gray-900">R$ {{ resumo_financeiro.total_receitas|floatformat:2 }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-red-100 rounded-md p-3">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+              <i class="fas fa-arrow-up text-white"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Despesas</p>
+              <p class="text-lg font-semibold text-gray-900">R$ {{ resumo_financeiro.total_despesas|floatformat:2 }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-gray-500">Saldo do período:</span>
+          <span class="text-lg font-semibold {% if resumo_financeiro.saldo >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            R$ {{ resumo_financeiro.saldo|floatformat:2 }}
+          </span>
+        </div>
+      </div>
+      <div class="mt-5">
+        <a href="{% url 'financeiro:resumo' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+          Ver relatório completo <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Informações Gerais -->
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Informações Gerais</h3>
+      <div class="mt-5 space-y-4">
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-gray-500">Total de Clientes:</span>
+          <span class="text-lg font-semibold text-gray-900">{{ total_clientes }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-gray-500">Total de Funcionários:</span>
+          <span class="text-lg font-semibold text-gray-900">{{ total_funcionarios }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm font-medium text-gray-500">Tipos de Bolsos:</span>
+          <span class="text-lg font-semibold text-gray-900">{{ total_tipos_bolsos }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Clientes e Funcionários Top -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Top Clientes -->
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Top Clientes</h3>
+      {% if top_clientes %}
+        <div class="mt-5 space-y-4">
+          {% for cliente in top_clientes %}
+            <div class="flex items-center justify-between py-2 border-b">
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">{{ cliente.nome }}</p>
+                <p class="text-xs text-gray-500">{{ cliente.total_ordens }} ordens</p>
+              </div>
+              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                R$ {{ cliente.valor_total|floatformat:2 }}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mt-5 text-center text-gray-500 py-4">
+          <p>Nenhum cliente com ordens registradas.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Top Funcionários -->
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Top Funcionários</h3>
+      {% if top_funcionarios %}
+        <div class="mt-5 space-y-4">
+          {% for funcionario in top_funcionarios %}
+            <div class="flex items-center justify-between py-2 border-b">
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">{{ funcionario.nome }}</p>
+                <p class="text-xs text-gray-500">{{ funcionario.total_producoes }} produções</p>
+              </div>
+              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                {{ funcionario.total_bolsos }} bolsos
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mt-5 text-center text-gray-500 py-4">
+          <p>Nenhuma produção registrada.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

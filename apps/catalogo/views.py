@@ -31,4 +31,5 @@ class TipoBolsoUpdateView(LoginRequiredMixin, UpdateView):
 class TipoBolsoDeleteView(LoginRequiredMixin, DeleteView):
     model = TipoBolso
     template_name = 'catalogo/tipobolso_confirm_delete.html'
+    context_object_name = 'tipo_bolso'
     success_url = reverse_lazy('catalogo:list')

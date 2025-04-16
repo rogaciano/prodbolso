@@ -61,6 +61,26 @@ class TransacaoCreateView(LoginRequiredMixin, CreateView):
               'ordem_servico', 'observacoes', 'comprovante']
     success_url = reverse_lazy('financeiro:list')
     
+    def get_initial(self):
+        """Preenche a ordem_servico se 'ordem_servico' estiver na querystring"""
+        initial = super().get_initial()
+        ordem_id = self.request.GET.get('ordem_servico')
+        if ordem_id:
+            from apps.ordens_servico.models import OrdemServico
+            try:
+                ordem = OrdemServico.objects.get(pk=ordem_id)
+                # Popula campos baseados na ordem
+                initial['ordem_servico'] = ordem
+                initial['descricao'] = f"Pagamento OS #{ordem.ficha}"
+                initial['tipo'] = 'receita'
+                initial['categoria'] = 'ordem_servico'
+                # Define valor como saldo pendente da OS
+                initial['valor'] = ordem.valor_total - ordem.valor_recebido
+                initial['data'] = timezone.now().date()
+            except OrdemServico.DoesNotExist:
+                pass
+        return initial
+     
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, 'Transação registrada com sucesso!')

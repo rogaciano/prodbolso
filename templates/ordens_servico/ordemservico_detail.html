@@ -48,8 +48,6 @@
             Entregue em {{ ordem.producao.data_entrega|date:"d/m/Y" }}.
             {% if ordem.pago %}
               <span class="font-medium text-green-700">Pagamento recebido.</span>
-            {% else %}
-              <span class="font-medium text-red-700">Pagamento pendente.</span>
             {% endif %}
           {% elif ordem.status == 'cancelado' %}
             Esta ordem foi cancelada.
@@ -85,6 +83,12 @@
     <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500" onclick="document.getElementById('modal-entrega').classList.remove('hidden')">
       <i class="fas fa-truck mr-2"></i> Registrar Entrega
     </button>
+  {% endif %}
+  
+  {% if ordem.status == 'entregue' and ordem.valor_recebido < ordem.valor_total %}
+    <a href="{% url 'financeiro:add' %}?ordem_servico={{ ordem.id }}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      <i class="fas fa-credit-card mr-2"></i> Registrar Pagamento
+    </a>
   {% endif %}
   
   {% if ordem.status == 'pendente' or ordem.status == 'cancelado' %}
@@ -137,12 +141,50 @@
         <dt class="text-sm font-medium text-gray-500">Valor Total</dt>
         <dd class="mt-1 text-sm font-bold text-gray-900 sm:mt-0 sm:col-span-2">R$ {{ ordem.valor_total|floatformat:2 }}</dd>
       </div>
-      
+      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <dt class="text-sm font-medium text-gray-500">Pagamento Recebido</dt>
+        {% if ordem.pago %}
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Sim</dd>
+        {% endif %}
+      </div>
       <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Observações</dt>
-        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.observacoes|default:"-"|linebreaks }}</dd>
+        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden;">{{ ordem.observacoes|default:"-"|linebreaks }}</dd>
       </div>
     </dl>
+  </div>
+</div>
+
+<!-- Histórico Financeiro -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Histórico Financeiro</h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for trans in transacoes %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ trans.data|date:"d/m/Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.descricao }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.get_categoria_display }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">R$ {{ trans.valor|floatformat:2 }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhuma transação registrada.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 

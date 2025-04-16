@@ -39,6 +39,9 @@ class OrdemServicoDetailView(LoginRequiredMixin, DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        from apps.financeiro.models import Transacao
+        # Histórico financeiro da OS
+        context['transacoes'] = Transacao.objects.filter(ordem_servico=self.object).order_by('-data')
         return context
 
 class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
@@ -70,6 +73,7 @@ class OrdemServicoUpdateView(LoginRequiredMixin, UpdateView):
 class OrdemServicoDeleteView(LoginRequiredMixin, DeleteView):
     model = OrdemServico
     template_name = 'ordens_servico/ordemservico_confirm_delete.html'
+    context_object_name = 'ordem'
     success_url = reverse_lazy('ordens_servico:list')
     
     def delete(self, request, *args, **kwargs):
@@ -116,6 +120,9 @@ class ItemOrdemServicoCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['ordem_servico'] = self.ordem_servico
+        tempo_minutos = getattr(self.ordem_servico, 'tempo_estimado_producao', 0)
+        context['total_tempo'] = tempo_minutos
+        context['total_tempo_horas'] = tempo_minutos / 60 if tempo_minutos else 0
         return context
     
     def get_success_url(self):
@@ -138,6 +145,9 @@ class ItemOrdemServicoUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['ordem_servico'] = self.object.ordem_servico
+        tempo_minutos = getattr(self.object.ordem_servico, 'tempo_estimado_producao', 0)
+        context['total_tempo'] = tempo_minutos
+        context['total_tempo_horas'] = tempo_minutos / 60 if tempo_minutos else 0
         return context
     
     def get_success_url(self):
@@ -178,6 +188,11 @@ class ProducaoOSCreateView(LoginRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.ordem_servico = get_object_or_404(OrdemServico, pk=self.kwargs['ordem_id'])
         
+        # Verifica se a OS possui itens antes de iniciar produção
+        if not self.ordem_servico.itens.exists():
+            messages.error(request, 'Não é possível iniciar produção sem itens na ordem.')
+            return redirect('ordens_servico:detail', pk=self.ordem_servico.pk)
+        
         # Verifica se a OS já tem produção
         if hasattr(self.ordem_servico, 'producao'):
             messages.error(request, 'Esta ordem já está em produção.')
@@ -190,21 +205,39 @@ class ProducaoOSCreateView(LoginRequiredMixin, CreateView):
             
         return super().dispatch(request, *args, **kwargs)
     
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Remove o campo data_inicio do formulário de criação, será definido automaticamente
+        form.fields.pop('data_inicio', None)
+        return form
+    
     def form_valid(self, form):
+        # Atualiza o status antes de salvar a produção
+        ordem = self.ordem_servico
+        ordem.status = 'em_producao'
+        ordem.save(update_fields=['status'])
+        
+        # Associa a OS e data à produção
         form.instance.ordem_servico = self.ordem_servico
         form.instance.data_inicio = timezone.now().date()
         
-        # Atualiza o status da OS para "em_producao"
-        self.ordem_servico.status = 'em_producao'
-        self.ordem_servico.save()
-        
+        # Salva a produção
         response = super().form_valid(form)
-        messages.success(self.request, 'Produção iniciada com sucesso!')
-        return response
+        
+        # Garante que o status foi alterado novamente após o save
+        OrdemServico.objects.filter(pk=ordem.pk).update(status='em_producao')
+        
+        messages.success(self.request, 'Produção iniciada com sucesso! A ordem agora está em produção.')
+        
+        # Força o redirecionamento direto
+        return redirect('ordens_servico:detail', pk=self.ordem_servico.pk)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['ordem_servico'] = self.ordem_servico
+        tempo_minutos = getattr(self.ordem_servico, 'tempo_estimado_producao', 0)
+        context['total_tempo'] = tempo_minutos
+        context['total_tempo_horas'] = tempo_minutos / 60 if tempo_minutos else 0
         return context
     
     def get_success_url(self):
@@ -218,6 +251,9 @@ class ProducaoOSUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['ordem_servico'] = self.object.ordem_servico
+        tempo_minutos = getattr(self.object.ordem_servico, 'tempo_estimado_producao', 0)
+        context['total_tempo'] = tempo_minutos
+        context['total_tempo_horas'] = tempo_minutos / 60 if tempo_minutos else 0
         return context
     
     def get_success_url(self):

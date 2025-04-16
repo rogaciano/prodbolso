@@ -74,7 +74,7 @@
             <td colspan="2" class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-bold text-gray-900">
                 {% with total_tempo=ordem_servico.tempo_estimado_producao %}
-                  {{ total_tempo }} minutos ({{ total_tempo|floatformat:1|div:60 }} horas)
+                  {{ total_tempo }} minutos ({{ total_tempo_horas|floatformat:1 }} horas)
                 {% endwith %}
               </div>
             </td>

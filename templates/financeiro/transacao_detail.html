@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-4">Transação {{ transacao.id }}</h1>
+  <dl class="grid grid-cols-2 gap-4">
+    <div>
+      <dt class="font-semibold">Descrição</dt>
+      <dd>{{ transacao.descricao }}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold">Tipo</dt>
+      <dd>{{ transacao.get_tipo_display }}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold">Categoria</dt>
+      <dd>{{ transacao.get_categoria_display }}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold">Valor</dt>
+      <dd>R$ {{ transacao.valor|floatformat:2 }}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold">Data</dt>
+      <dd>{{ transacao.data }}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold">Ordem de Serviço</dt>
+      <dd>
+        {% if transacao.ordem_servico %}
+          <a href="{% url 'ordens_servico:detail' transacao.ordem_servico.pk %}" class="text-blue-600 hover:text-blue-900">
+            OS #{{ transacao.ordem_servico.ficha }}
+          </a>
+        {% else %}
+          &mdash;
+        {% endif %}
+      </dd>
+    </div>
+    <div class="col-span-2">
+      <dt class="font-semibold">Observações</dt>
+      <dd>{{ transacao.observacoes|default:'—' }}</dd>
+    </div>
+    {% if transacao.comprovante %}
+    <div class="col-span-2">
+      <dt class="font-semibold">Comprovante</dt>
+      <dd><a href="{{ transacao.comprovante.url }}" class="text-blue-600 hover:underline" target="_blank">Ver arquivo</a></dd>
+    </div>
+    {% endif %}
+  </dl>
+  <div class="mt-6 flex space-x-3">
+    <a href="{% url 'financeiro:edit' transacao.id %}" class="px-4 py-2 bg-yellow-600 text-white rounded">Editar</a>
+    <a href="{% url 'financeiro:list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded">Voltar</a>
+  </div>
+</div>
+{% endblock %}

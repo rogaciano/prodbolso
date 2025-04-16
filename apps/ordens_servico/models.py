@@ -69,6 +69,12 @@ class OrdemServico(models.Model):
             cor, label
         )
 
+    @property
+    def valor_recebido(self):
+        """Soma de todas as transações relacionadas a esta ordem de serviço"""
+        total = self.transacoes.aggregate(total=Sum('valor'))['total']
+        return total or 0
+
     class Meta:
         verbose_name = 'Ordem de Serviço'
         verbose_name_plural = 'Ordens de Serviço'
@@ -122,20 +128,23 @@ class ProducaoOS(models.Model):
         return (self.data_conclusao - self.data_inicio).days
         
     def save(self, *args, **kwargs):
-        # Atualiza o status da ordem de serviço se necessário
-        if self.pk is None:  # nova produção
+        # Preserve old state to detect transitions
+        old = ProducaoOS.objects.get(pk=self.pk) if self.pk else None
+        super().save(*args, **kwargs)
+        if not old:
+            # Nova produção: marca como em produção
             self.ordem_servico.status = 'em_producao'
             self.ordem_servico.save(update_fields=['status'])
-        elif self.data_conclusao and not ProducaoOS.objects.get(pk=self.pk).data_conclusao:
-            # Conclusão da produção
-            self.ordem_servico.status = 'finalizado'
-            self.ordem_servico.save(update_fields=['status'])
-        elif self.data_entrega and not ProducaoOS.objects.get(pk=self.pk).data_entrega:
-            # Entrega da ordem
-            self.ordem_servico.status = 'entregue'
-            self.ordem_servico.save(update_fields=['status'])
-            
-        super().save(*args, **kwargs)
+        else:
+            # Transição para finalizado
+            if self.data_conclusao and not old.data_conclusao:
+                self.ordem_servico.status = 'finalizado'
+                self.ordem_servico.save(update_fields=['status'])
+            # Transição para entregue
+            if self.data_entrega and not old.data_entrega:
+                self.ordem_servico.status = 'entregue'
+                self.ordem_servico.save(update_fields=['status'])
+
         
     class Meta:
         verbose_name = 'Produção de OS'

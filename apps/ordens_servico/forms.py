@@ -14,6 +14,9 @@ class OrdemServicoForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Em formulário novo, não mostrar '---------' como opção vazia no select de cliente
+        if not self.instance.pk:
+            self.fields['cliente'].empty_label = ''
         # Adicionar o campo status apenas para instâncias existentes (edição)
         if self.instance.pk:
             self.fields['status'] = forms.ChoiceField(
@@ -59,3 +62,12 @@ class ProducaoOSForm(forms.ModelForm):
         widgets = {
             'data_inicio': forms.DateInput(attrs={'type': 'date'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            # Oculta input de data_inicio e define valor inicial para hoje
+            from django.forms import HiddenInput
+            from django.utils import timezone
+            self.fields['data_inicio'].widget = HiddenInput()
+            self.initial['data_inicio'] = timezone.now().date()

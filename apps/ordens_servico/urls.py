@@ -10,6 +10,8 @@ urlpatterns = [
     path('<int:pk>/', views.OrdemServicoDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.OrdemServicoUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.OrdemServicoDeleteView.as_view(), name='delete'),
+    # Rota para adicionar itens via modal HTMX
+    path('<int:ordem_id>/item/add/', views.ItemOrdemServicoCreateView.as_view(), name='item_add'),
     
     # Itens de Ordem de Serviço
     path('<int:ordem_id>/itens/add/', views.ItemOrdemServicoCreateView.as_view(), name='item_add'),

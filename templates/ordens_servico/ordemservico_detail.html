@@ -38,7 +38,12 @@
         {% elif ordem.status == 'entregue' %}text-purple-700
         {% elif ordem.status == 'cancelado' %}text-red-700{% endif %}">
         <p>
-          {% if ordem.status == 'pendente' %}
+          {% if ordem.status == 'pendente' and ordem.valor_total == 0 %}
+            ATENÇÁO! Esta ordem ainda está sem os Itens!! 
+            <a href="{% url 'ordens_servico:item_add' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <i class="fas fa-plus mr-2"></i> Adicionar Item
+            </a>
+          {% elif ordem.status == 'pendente' %}
             Esta ordem está aguardando início da produção.
           {% elif ordem.status == 'em_producao' %}
             Esta ordem está em produção desde {{ ordem.producao.data_inicio|date:"d/m/Y" }}.
@@ -59,12 +64,17 @@
 </div>
 
 <!-- Action Buttons -->
+
 <div class="mb-6 flex flex-wrap justify-end gap-2">
+  <a href="{% url 'ordens_servico:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
+  </a>
+
   <a href="{% url 'ordens_servico:edit' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
     <i class="fas fa-edit mr-2"></i> Editar
   </a>
   
-  {% if ordem.status == 'pendente' %}
+  {% if ordem.status == 'pendente' and ordem.valor_total > 0 %}
     <a href="{% url 'ordens_servico:producao_add' ordem.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
       <i class="fas fa-play mr-2"></i> Iniciar Produção
     </a>
@@ -152,39 +162,6 @@
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden;">{{ ordem.observacoes|default:"-"|linebreaks }}</dd>
       </div>
     </dl>
-  </div>
-</div>
-
-<!-- Histórico Financeiro -->
-<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
-  <div class="px-4 py-5 sm:px-6">
-    <h2 class="text-lg leading-6 font-medium text-gray-900">Histórico Financeiro</h2>
-  </div>
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        {% for trans in transacoes %}
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ trans.data|date:"d/m/Y" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.descricao }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.get_categoria_display }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">R$ {{ trans.valor|floatformat:2 }}</td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhuma transação registrada.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
   </div>
 </div>
 
@@ -277,19 +254,19 @@
             </a>
           </dd>
         </div>
-        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <div class="bg-white px-3 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Data de Início</dt>
           <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.producao.data_inicio|date:"d/m/Y" }}</dd>
         </div>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <div class="bg-gray-50 px-3 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Data de Conclusão</dt>
           <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.producao.data_conclusao|date:"d/m/Y"|default:"-" }}</dd>
         </div>
-        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <div class="bg-white px-3 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Data de Entrega</dt>
           <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ ordem.producao.data_entrega|date:"d/m/Y"|default:"-" }}</dd>
         </div>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+        <div class="bg-gray-50 px-3 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Tempo Total</dt>
           <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             {% if ordem.producao.data_conclusao %}
@@ -303,6 +280,40 @@
     </div>
   </div>
 {% endif %}
+
+<!-- Histórico Financeiro -->
+<div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Histórico Financeiro</h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for trans in transacoes %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ trans.data|date:"d/m/Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.descricao }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.get_categoria_display }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">R$ {{ trans.valor|floatformat:2 }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhuma transação registrada.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 <!-- Modal for Delivery Registration -->
 <div id="modal-entrega" class="hidden fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -371,12 +382,6 @@
       {% endif %}
     </div>
   </div>
-</div>
-
-<div class="mt-6 flex justify-between">
-  <a href="{% url 'ordens_servico:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
-  </a>
 </div>
 
 {% block extra_js %}

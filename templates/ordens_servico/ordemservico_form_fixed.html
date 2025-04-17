@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Ordem de Serviço - Bolso Niran{% endblock %}
+
+{% block header %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Ordem de Serviço{% endblock %}
+
+{% block extra_css %}
+<style>
+  .autocomplete-results {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  .autocomplete-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+  }
+  .autocomplete-item:hover {
+    background-color: #f3f4f6;
+  }
+  .create-new-item {
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    color: #2563eb;
+    font-weight: 500;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:p-6">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+        <div class="sm:col-span-3 relative">
+          <div id="cliente-wrapper">
+            {{ form.cliente.label_tag }}
+            <div class="relative">
+              <input type="text" id="cliente-search" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Pesquisar cliente..." autocomplete="off">
+              <div id="cliente-autocomplete-results" class="autocomplete-results hidden"></div>
+            </div>
+            <div class="hidden">{{ form.cliente }}</div>
+          </div>
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.ficha|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.data_entrega_prevista|as_crispy_field }}
+        </div>
+        
+        {% if form.instance.pk %}
+          <div class="sm:col-span-3">
+            {{ form.status|as_crispy_field }}
+          </div>
+        {% endif %}
+        
+        <div class="sm:col-span-6">
+          {{ form.observacoes|as_crispy_field }}
+        </div>
+      </div>
+      
+      <!-- ITENS DA ORDEM -->
+      <div class="mt-8">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Itens da Ordem</h3>
+        <table class="min-w-full divide-y divide-gray-200 mb-4">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2">Tipo de Bolso</th>
+              <th class="px-4 py-2">Quantidade</th>
+              <th class="px-4 py-2">Valor Unitário</th>
+              <th class="px-4 py-2">Remover</th>
+            </tr>
+          </thead>
+          <tbody id="itens-formset">
+            {{ formset.management_form }}
+            {% for form in formset.forms %}
+              <tr class="item-form-row">
+                <td class="px-4 py-2">{{ form.tipo_bolso }}</td>
+                <td class="px-4 py-2">{{ form.quantidade }}</td>
+                <td class="px-4 py-2">{{ form.valor_unitario }}</td>
+                <td class="px-4 py-2 text-center">{{ form.DELETE }} <button type="button" class="remove-item px-2 py-1 bg-red-100 text-red-700 rounded">Remover</button></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <button type="button" id="add-item" class="px-4 py-2 bg-green-600 text-white rounded">Adicionar Item</button>
+        <!-- Linha vazia para template do formset -->
+        <table style="display:none">
+          <tbody>
+            <tr id="empty-form-row">
+              <td class="px-4 py-2">{{ formset.empty_form.tipo_bolso }}</td>
+              <td class="px-4 py-2">{{ formset.empty_form.quantidade }}</td>
+              <td class="px-4 py-2">{{ formset.empty_form.valor_unitario }}</td>
+              <td class="px-4 py-2 text-center">{{ formset.empty_form.DELETE }} <button type="button" class="remove-item px-2 py-1 bg-red-100 text-red-700 rounded">Remover</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 flex justify-end space-x-3">
+        <a href="{% url 'ordens_servico:list' %}" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+          Cancelar
+        </a>
+        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Salvar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Quick Add Client Modal -->
+<div id="quickAddModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="px-4 py-5 sm:px-6 flex justify-between items-center border-b">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Cadastro Rápido de Cliente</h3>
+      <button type="button" id="closeModal" class="text-gray-400 hover:text-gray-500">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="quickAddForm" class="px-4 py-5 sm:p-6">
+      <div class="space-y-4">
+        <div>
+          <label for="quickNome" class="block text-sm font-medium text-gray-700">Nome</label>
+          <input type="text" id="quickNome" name="nome" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickTelefone" class="block text-sm font-medium text-gray-700">Telefone</label>
+          <input type="text" id="quickTelefone" name="telefone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickContato" class="block text-sm font-medium text-gray-700">Contato</label>
+          <input type="text" id="quickContato" name="contato" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickEmail" class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" id="quickEmail" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="quickEndereco" class="block text-sm font-medium text-gray-700">Endereço</label>
+          <textarea id="quickEndereco" name="endereco" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-6 flex justify-end">
+        <button type="button" id="cancelAddClient" class="inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3">
+          Cancelar
+        </button>
+        <button type="submit" class="inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Salvar Cliente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Script de itens carregado!');
+  var addBtn = document.getElementById('add-item');
+  if (!addBtn) {
+    console.error('Botão Adicionar Item não encontrado!');
+    return;
+  }
+  addBtn.addEventListener('click', function() {
+    const totalForms = document.getElementById('id_itemordemservico_set-TOTAL_FORMS');
+    const currentCount = parseInt(totalForms.value);
+    const emptyRow = document.getElementById('empty-form-row').cloneNode(true);
+    emptyRow.removeAttribute('id');
+    emptyRow.style.display = '';
+    // Atualiza os atributos name/id dos campos clonados
+    emptyRow.innerHTML = emptyRow.innerHTML.replace(/__prefix__/g, currentCount);
+    emptyRow.classList.add('item-form-row');
+    document.getElementById('itens-formset').appendChild(emptyRow);
+    totalForms.value = currentCount + 1;
+  });
+
+  document.getElementById('itens-formset').addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-item')) {
+      const row = e.target.closest('tr');
+      row.remove();
+      // Atualizar TOTAL_FORMS
+      const totalForms = document.getElementById('id_itemordemservico_set-TOTAL_FORMS');
+      totalForms.value = document.querySelectorAll('.item-form-row').length;
+    }
+  });
+});
+</script>
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const clienteSelect = document.getElementById('id_cliente');
+    const clienteSearch = document.getElementById('cliente-search');
+    const resultsContainer = document.getElementById('cliente-autocomplete-results');
+    const quickAddModal = document.getElementById('quickAddModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelAddClient = document.getElementById('cancelAddClient');
+    const quickAddForm = document.getElementById('quickAddForm');
+    const quickNomeInput = document.getElementById('quickNome');
+    
+    // Inicializar o campo de pesquisa com o valor selecionado, se houver
+    if (clienteSelect.options[clienteSelect.selectedIndex]) {
+      clienteSearch.value = clienteSelect.options[clienteSelect.selectedIndex].text;
+    }
+    
+    // Função para buscar clientes
+    let searchTimeout;
+    clienteSearch.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const query = this.value.trim();
+      
+      if (query.length < 2) {
+        resultsContainer.classList.add('hidden');
+        return;
+      }
+      
+      searchTimeout = setTimeout(() => {
+        fetch(`/clientes/search/?q=${encodeURIComponent(query)}`)
+          .then(response => response.json())
+          .then(data => {
+            resultsContainer.innerHTML = '';
+            
+            if (data.results.length > 0) {
+              data.results.forEach(cliente => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = cliente.nome;
+                item.dataset.id = cliente.id;
+                item.addEventListener('click', () => {
+                  clienteSearch.value = cliente.nome;
+                  clienteSelect.value = cliente.id;
+                  resultsContainer.classList.add('hidden');
+                });
+                resultsContainer.appendChild(item);
+              });
+              
+              // Adicionar opção para cadastro rápido
+              const createNew = document.createElement('div');
+              createNew.className = 'create-new-item';
+              createNew.textContent = `Cadastrar "${query}"`;
+              createNew.addEventListener('click', () => {
+                openQuickAddModal(query);
+              });
+              resultsContainer.appendChild(createNew);
+              
+              resultsContainer.classList.remove('hidden');
+            } else {
+              // Nenhum resultado, mostrar opção para cadastrar
+              const createNew = document.createElement('div');
+              createNew.className = 'create-new-item';
+              createNew.textContent = `Cadastrar "${query}"`;
+              createNew.addEventListener('click', () => {
+                openQuickAddModal(query);
+              });
+              resultsContainer.appendChild(createNew);
+              
+              resultsContainer.classList.remove('hidden');
+            }
+          });
+      }, 300);
+    });
+    
+    // Funções para o modal de cadastro rápido
+    function openQuickAddModal(nome) {
+      quickNomeInput.value = nome || '';
+      quickAddModal.classList.remove('hidden');
+    }
+    
+    function closeQuickAddModal() {
+      quickAddModal.classList.add('hidden');
+    }
+    
+    closeModal.addEventListener('click', closeQuickAddModal);
+    cancelAddClient.addEventListener('click', closeQuickAddModal);
+    
+    // Enviar formulário de cadastro rápido
+    quickAddForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(quickAddForm);
+      const data = {
+        nome: formData.get('nome'),
+        telefone: formData.get('telefone'),
+        contato: formData.get('contato'),
+        email: formData.get('email'),
+        endereco: formData.get('endereco'),
+      };
+      
+      fetch('/clientes/quick-add/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Atualizar o select de cliente
+          const newOption = new Option(data.cliente.nome, data.cliente.id, true, true);
+          clienteSelect.options.add(newOption);
+          clienteSelect.value = data.cliente.id;
+          
+          // Atualizar o input de pesquisa e fechar o modal
+          clienteSearch.value = data.cliente.nome;
+          closeQuickAddModal();
+        } else {
+          alert('Erro ao cadastrar cliente: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao cadastrar cliente:', error);
+        alert('Erro ao cadastrar cliente. Tente novamente.');
+      });
+    });
+    
+    // Função para obter o cookie CSRF
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  });
+</script>
+{% endblock %}

@@ -135,9 +135,13 @@ ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_USERNAME_REQUIRED = True
 # Permite login via usuário ou email
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# Desabilita verificação de email obrigatória para permitir login sem contato com SMTP
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET = True
 
-LOGIN_REDIRECT_URL = reverse_lazy('dashboard')
+# Ajustes de email para evitar falha DNS no login
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+LOGIN_REDIRECT_URL = reverse_lazy('dashboard:index')
 LOGOUT_REDIRECT_URL = reverse_lazy('login')

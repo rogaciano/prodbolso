@@ -9,7 +9,11 @@ class OrdemServicoForm(forms.ModelForm):
         fields = ['cliente', 'ficha', 'data_entrega_prevista', 'observacoes']
         widgets = {
             'data_entrega_prevista': forms.DateInput(attrs={'type': 'date'}),
-            'observacoes': forms.Textarea(attrs={'rows': 3}),
+            # limitar observações a uma linha
+            'observacoes': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'resize-none h-8'
+            }),
         }
     
     def __init__(self, *args, **kwargs):

@@ -25,7 +25,7 @@ class OrdemServico(models.Model):
     data_criacao = models.DateField(auto_now_add=True)
     data_entrega_prevista = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
-    observacoes = models.TextField(blank=True)
+    observacoes = models.TextField(blank=True) # adicionar quantidade de linhas 3
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)
     forma_pagamento = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES, null=True, blank=True)
     pago = models.BooleanField(default=False)

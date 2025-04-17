@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Transacao, ResumoFinanceiro
 from django.db.models import Sum
+import json
 
 class TransacaoListView(LoginRequiredMixin, ListView):
     model = Transacao
@@ -85,6 +86,14 @@ class TransacaoCreateView(LoginRequiredMixin, CreateView):
         response = super().form_valid(form)
         messages.success(self.request, 'Transação registrada com sucesso!')
         return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['receita_choices'] = Transacao.CATEGORIA_RECEITA_CHOICES
+        context['despesa_choices'] = Transacao.CATEGORIA_DESPESA_CHOICES
+        context['receita_choices_json'] = json.dumps(Transacao.CATEGORIA_RECEITA_CHOICES)
+        context['despesa_choices_json'] = json.dumps(Transacao.CATEGORIA_DESPESA_CHOICES)
+        return context
 
 class TransacaoUpdateView(LoginRequiredMixin, UpdateView):
     model = Transacao
@@ -97,6 +106,14 @@ class TransacaoUpdateView(LoginRequiredMixin, UpdateView):
         response = super().form_valid(form)
         messages.success(self.request, 'Transação atualizada com sucesso!')
         return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['receita_choices'] = Transacao.CATEGORIA_RECEITA_CHOICES
+        context['despesa_choices'] = Transacao.CATEGORIA_DESPESA_CHOICES
+        context['receita_choices_json'] = json.dumps(Transacao.CATEGORIA_RECEITA_CHOICES)
+        context['despesa_choices_json'] = json.dumps(Transacao.CATEGORIA_DESPESA_CHOICES)
+        return context
 
 class TransacaoDeleteView(LoginRequiredMixin, DeleteView):
     model = Transacao

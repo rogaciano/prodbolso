@@ -23,6 +23,8 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    # Alias para login usado no logout
+    path('login/', RedirectView.as_view(pattern_name='account_login', permanent=False), name='login'),
     path('dashboard/', include('apps.dashboard.urls')),
     path('funcionarios/', include('apps.funcionarios.urls')),
     path('clientes/', include('apps.clientes.urls')),

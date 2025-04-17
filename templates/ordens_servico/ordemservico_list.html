@@ -13,12 +13,30 @@
     </a>
   </div>
   
+  <!-- Status Summary Cards -->
+  <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    {% for s in status_summary %}
+      <a href="?status={{ s.key }}"
+         class="{% if s.key == 'pendente' %}bg-yellow-50 hover:bg-yellow-100{% elif s.key == 'em_producao' %}bg-blue-50 hover:bg-blue-100{% elif s.key == 'finalizado' %}bg-green-50 hover:bg-green-100{% elif s.key == 'entregue' %}bg-purple-50 hover:bg-purple-100{% elif s.key == 'cancelado' %}bg-red-50 hover:bg-red-100{% else %}bg-white hover:bg-gray-50{% endif %} p-4 rounded-lg shadow flex justify-between items-center">
+        <div>
+          <p class="text-sm font-medium text-gray-500">{{ s.display }}</p>
+          <p class="mt-1 text-lg font-semibold text-gray-900">{{ s.count }} OS</p>
+        </div>
+        <p class="text-sm font-medium text-gray-900">R$ {{ s.total|floatformat:2 }}</p>
+      </a>
+    {% endfor %}
+  </div>
+
   <!-- Filters -->
   <div class="px-4 py-3 bg-gray-50 border-t border-b border-gray-200">
     <form method="get" class="flex flex-wrap gap-4">
       <div class="flex-1 min-w-[200px]">
         <label for="cliente" class="block text-sm font-medium text-gray-700">Cliente</label>
         <input type="text" name="cliente" id="cliente" value="{{ request.GET.cliente|default:'' }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+      </div>
+      <div class="flex-1 min-w-[150px]">
+        <label for="ficha" class="block text-sm font-medium text-gray-700">Ficha</label>
+        <input type="text" name="ficha" id="ficha" value="{{ request.GET.ficha|default:'' }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
       </div>
       <div class="w-[150px]">
         <label for="status" class="block text-sm font-medium text-gray-700">Status</label>

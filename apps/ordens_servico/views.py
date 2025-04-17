@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import OrdemServico, ItemOrdemServico, ProducaoOS
 from apps.financeiro.models import Transacao
+from decimal import Decimal
+from django.db.models import Sum
 from .forms import OrdemServicoForm, ItemOrdemServicoForm, ProducaoOSForm
 
 class OrdemServicoListView(LoginRequiredMixin, ListView):
@@ -24,12 +26,26 @@ class OrdemServicoListView(LoginRequiredMixin, ListView):
         cliente = self.request.GET.get('cliente')
         if cliente:
             queryset = queryset.filter(cliente__nome__icontains=cliente)
+        
+        # Filtrar por número de ficha
+        ficha = self.request.GET.get('ficha')
+        if ficha:
+            queryset = queryset.filter(ficha__icontains=ficha)
             
         return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['status_choices'] = OrdemServico.STATUS_CHOICES
+        # Resumo por status
+        all_orders = self.model.objects.all()
+        status_summary = []
+        for key, display in self.model.STATUS_CHOICES:
+            qs = all_orders.filter(status=key)
+            total = qs.aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
+            count = qs.count()
+            status_summary.append({'key': key, 'display': display, 'count': count, 'total': total})
+        context['status_summary'] = status_summary
         return context
 
 class OrdemServicoDetailView(LoginRequiredMixin, DetailView):

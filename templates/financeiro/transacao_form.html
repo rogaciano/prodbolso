@@ -75,28 +75,19 @@
       // Limpar opções atuais
       categoriaSelect.innerHTML = '';
       
-      // Adicionar opções com base no tipo selecionado
-      if (tipoSelect.value === 'receita') {
-        {% for value, label in form.instance.CATEGORIA_RECEITA_CHOICES %}
-          const option = document.createElement('option');
-          option.value = '{{ value }}';
-          option.textContent = '{{ label }}';
-          categoriaSelect.appendChild(option);
-        {% endfor %}
-        
-        // Mostrar campo de ordem de serviço
-        ordemServicoField.style.display = 'block';
-      } else if (tipoSelect.value === 'despesa') {
-        {% for value, label in form.instance.CATEGORIA_DESPESA_CHOICES %}
-          const option = document.createElement('option');
-          option.value = '{{ value }}';
-          option.textContent = '{{ label }}';
-          categoriaSelect.appendChild(option);
-        {% endfor %}
-        
-        // Esconder campo de ordem de serviço para despesas
-        ordemServicoField.style.display = 'none';
-      }
+      // Adicionar opções com base no tipo selecionado usando JSON
+      const choicesJson = tipoSelect.value === 'receita'
+        ? '{{ receita_choices_json|escapejs }}'
+        : '{{ despesa_choices_json|escapejs }}';
+      const choices = JSON.parse(choicesJson);
+      choices.forEach(([val, label]) => {
+        const option = document.createElement('option');
+        option.value = val;
+        option.textContent = label;
+        categoriaSelect.appendChild(option);
+      });
+      // Mostrar ou esconder campo de ordem de serviço
+      ordemServicoField.style.display = tipoSelect.value === 'receita' ? 'block' : 'none';
     }
     
     // Atualizar categorias quando o tipo mudar

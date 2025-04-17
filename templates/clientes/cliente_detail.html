@@ -9,6 +9,9 @@
   <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
     <h2 class="text-lg leading-6 font-medium text-gray-900">{{ cliente.nome }}</h2>
     <div class="flex space-x-2">
+      <a href="{% url 'clientes:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
+      </a>
       <a href="{% url 'clientes:edit' cliente.id %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
         <i class="fas fa-edit mr-2"></i> Editar
       </a>
@@ -22,27 +25,27 @@
   </div>
   <div class="border-t border-gray-200">
     <dl>
-      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+      <div class="bg-gray-50 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Nome</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.nome }}</dd>
       </div>
-      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+      <div class="bg-white px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Contato</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.contato }}</dd>
       </div>
-      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+      <div class="bg-gray-50 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Email</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.email|default:"-" }}</dd>
       </div>
-      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+      <div class="bg-white px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Endereço</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.endereco|default:"-" }}</dd>
       </div>
-      <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+      <div class="bg-gray-50 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Data de Cadastro</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.data_cadastro|date:"d/m/Y" }}</dd>
       </div>
-      <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+      <div class="bg-white px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Observações</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ cliente.observacoes|default:"-"|linebreaks }}</dd>
       </div>
@@ -161,9 +164,4 @@
   </div>
 </div>
 
-<div class="mt-6 flex justify-between">
-  <a href="{% url 'clientes:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-    <i class="fas fa-arrow-left mr-2"></i> Voltar para Lista
-  </a>
-</div>
 {% endblock %}

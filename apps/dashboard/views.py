@@ -20,6 +20,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['ordens_pendentes'] = OrdemServico.objects.filter(status='pendente').count()
         context['ordens_em_producao'] = OrdemServico.objects.filter(status='em_producao').count()
         context['ordens_finalizadas'] = OrdemServico.objects.filter(status='finalizado').count()
+        # Outros status
+        context['ordens_entregue'] = OrdemServico.objects.filter(status='entregue').count()
+        context['ordens_canceladas'] = OrdemServico.objects.filter(status='cancelado').count()
         
         # Valores financeiros
         context['resumo_financeiro'] = ResumoFinanceiro.calcular_resumo()

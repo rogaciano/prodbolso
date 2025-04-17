@@ -1,3 +1,33 @@
 db.sqlite3
-db.sqlite3
-db.sqlite3
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+*/venv/
+env/
+*/env/
+.venv/
+*/.venv/
+
+# Static files collected by collectstatic
+staticfiles/
+
+# SQLite database
+*.sqlite3
+db.sqlite3*
+
+# Environment variables
+.env*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Outros arquivos específicos do seu projeto, se houver
+*.log
+# ...

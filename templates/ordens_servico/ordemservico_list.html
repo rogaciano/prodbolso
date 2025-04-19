@@ -55,8 +55,9 @@
     </form>
   </div>
 
-  <!-- Table -->
-  <div class="overflow-x-auto">
+  <!-- Tabela para desktop e cards para mobile -->
+  <!-- Tabela (visível apenas em telas maiores) -->
+  <div class="hidden md:block overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -127,6 +128,70 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  
+  <!-- Cards para mobile (visíveis apenas em telas menores) -->
+  <div class="md:hidden">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 px-4 py-2">
+      {% for ordem in ordens %}
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-4 sm:px-6 border-b border-gray-200 {% if ordem.status == 'pendente' %}bg-yellow-50{% elif ordem.status == 'em_producao' %}bg-blue-50{% elif ordem.status == 'finalizado' %}bg-green-50{% elif ordem.status == 'entregue' %}bg-purple-50{% elif ordem.status == 'cancelado' %}bg-red-50{% endif %}">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg leading-6 font-medium text-gray-900">Ficha #{{ ordem.ficha }}</h3>
+              <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                {% if ordem.status == 'pendente' %}bg-yellow-100 text-yellow-800
+                {% elif ordem.status == 'em_producao' %}bg-blue-100 text-blue-800
+                {% elif ordem.status == 'finalizado' %}bg-green-100 text-green-800
+                {% elif ordem.status == 'entregue' %}bg-purple-100 text-purple-800
+                {% elif ordem.status == 'cancelado' %}bg-red-100 text-red-800{% endif %}">
+                {{ ordem.get_status_display }}
+              </span>
+            </div>
+          </div>
+          <div class="px-4 py-2 sm:p-4">
+            <dl>
+              <div class="sm:grid sm:grid-cols-2 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Cliente</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0">{{ ordem.cliente.nome }}</dd>
+              </div>
+              <div class="mt-2 sm:grid sm:grid-cols-2 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Entrega</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0">{{ ordem.data_entrega_prevista|date:"d/m/Y" }}</dd>
+              </div>
+              <div class="mt-2 sm:grid sm:grid-cols-2 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Valor</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0">R$ {{ ordem.valor_total|floatformat:2 }}</dd>
+              </div>
+              {% if ordem.valor_recebido > 0 %}
+              <div class="mt-2 sm:grid sm:grid-cols-2 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500">Recebido</dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0">R$ {{ ordem.valor_recebido|floatformat:2 }}</dd>
+              </div>
+              {% endif %}
+            </dl>
+          </div>
+          <div class="px-4 py-3 bg-gray-50 text-right">
+            <div class="flex justify-end space-x-3">
+              <a href="{% url 'ordens_servico:detail' ordem.id %}" class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a href="{% url 'ordens_servico:edit' ordem.id %}" class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                <i class="fas fa-edit"></i>
+              </a>
+              {% if ordem.valor_recebido < ordem.valor_total %}
+                <a href="{% url 'financeiro:add' %}?ordem_servico={{ ordem.id }}" class="inline-flex items-center p-2 border border-transparent rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  <i class="fas fa-credit-card"></i>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-span-full px-6 py-4 text-center text-sm text-gray-500 bg-white rounded-lg shadow">
+          Nenhuma ordem de serviço encontrada.
+        </div>
+      {% endfor %}
+    </div>
   </div>
   
   <!-- Pagination -->

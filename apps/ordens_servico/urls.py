@@ -4,6 +4,7 @@ from . import views
 app_name = 'ordens_servico'
 
 urlpatterns = [
+    path('<int:pk>/pdf/', views.OrdemServicoPDFView.as_view(), name='ordemservico_pdf'),
     # Ordens de Serviço
     path('', views.OrdemServicoListView.as_view(), name='list'),
     path('add/', views.OrdemServicoCreateView.as_view(), name='add'),

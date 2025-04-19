@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.http import HttpResponse
+from django.template.loader import render_to_string, get_template
+from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.utils import timezone
@@ -285,6 +288,16 @@ class ProducaoOSFinalizarView(LoginRequiredMixin, View):
         
         messages.success(request, 'Produção finalizada com sucesso!')
         return redirect('ordens_servico:detail', pk=producao.ordem_servico.pk)
+
+class OrdemServicoPDFView(LoginRequiredMixin, DetailView):
+    model = OrdemServico
+    template_name = 'ordens_servico/ordemservico_pdf.html'
+    context_object_name = 'ordem'
+
+    def get(self, request, *args, **kwargs):
+        # Simplesmente renderiza o template HTML com CSS para impressão
+        ordem = self.get_object()
+        return render(request, self.template_name, {'ordem': ordem})
 
 class ProducaoOSEntregarView(LoginRequiredMixin, View):
     def post(self, request, pk):

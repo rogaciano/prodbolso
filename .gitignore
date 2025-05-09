@@ -31,3 +31,4 @@ Thumbs.db
 # Outros arquivos específicos do seu projeto, se houver
 *.log
 # ...
+db.sqlite3

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resumo Financeiro - Bolso Niran{% endblock %}
+
+{% block header %}Resumo Financeiro{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg leading-6 font-medium text-gray-900">Resumo Financeiro</h2>
+    <p class="mt-1 max-w-2xl text-sm text-gray-500">Período: {{ resumo.periodo }}</p>
+  </div>
+  
+  <!-- Filtro de período -->
+  <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+    <form method="get" class="space-y-4">
+      <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+        <div class="sm:col-span-3">
+          <label for="data_inicio" class="block text-sm font-medium text-gray-700">Data Inicial</label>
+          <div class="mt-1">
+            <input type="date" name="data_inicio" id="data_inicio" value="{{ data_inicio|date:'Y-m-d' }}" 
+                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+          </div>
+        </div>
+        
+        <div class="sm:col-span-3">
+          <label for="data_fim" class="block text-sm font-medium text-gray-700">Data Final</label>
+          <div class="mt-1">
+            <input type="date" name="data_fim" id="data_fim" value="{{ data_fim|date:'Y-m-d' }}" 
+                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex justify-end">
+        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Filtrar
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Resumo geral -->
+  <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <div class="bg-green-50 overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <dt class="text-sm font-medium text-gray-500 truncate">Total de Receitas</dt>
+          <dd class="mt-1 text-3xl font-semibold text-green-600">R$ {{ resumo.total_receitas|floatformat:2 }}</dd>
+        </div>
+      </div>
+      
+      <div class="bg-red-50 overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <dt class="text-sm font-medium text-gray-500 truncate">Total de Despesas</dt>
+          <dd class="mt-1 text-3xl font-semibold text-red-600">R$ {{ resumo.total_despesas|floatformat:2 }}</dd>
+        </div>
+      </div>
+      
+      <div class="bg-blue-50 overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <dt class="text-sm font-medium text-gray-500 truncate">Saldo</dt>
+          <dd class="mt-1 text-3xl font-semibold {% if resumo.saldo >= 0 %}text-blue-600{% else %}text-red-600{% endif %}">
+            R$ {{ resumo.saldo|floatformat:2 }}
+          </dd>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Detalhes por categoria -->
+  <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <!-- Receitas por categoria -->
+      <div>
+        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Receitas por Categoria</h3>
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Categoria</th>
+                <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Valor</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              {% for categoria, valor in resumo.receitas_por_categoria.items %}
+              <tr>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                  {% for cat_id, cat_nome in receita_choices %}
+                    {% if cat_id == categoria %}{{ cat_nome }}{% endif %}
+                  {% endfor %}
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-500">R$ {{ valor|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Despesas por categoria -->
+      <div>
+        <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Despesas por Categoria</h3>
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Categoria</th>
+                <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Valor</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              {% for categoria, valor in resumo.despesas_por_categoria.items %}
+              <tr>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                  {% for cat_id, cat_nome in despesa_choices %}
+                    {% if cat_id == categoria %}{{ cat_nome }}{% endif %}
+                  {% endfor %}
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-500">R$ {{ valor|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

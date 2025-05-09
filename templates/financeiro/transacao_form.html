@@ -14,7 +14,20 @@
   </div>
   <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
     <form method="post" enctype="multipart/form-data" novalidate>
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      {{ form.errors }}
+    </div>
+  {% endif %}
       {% csrf_token %}
+      
+      <!-- Informações de Debug -->
+      <div class="bg-gray-100 p-3 mb-4 rounded">
+        <p><strong>Debug:</strong> Request method: {{ request.method }}</p>
+        <p>Form is bound: {{ form.is_bound }}</p>
+        <p>Form has changed data: {{ form.has_changed }}</p>
+        <p>Form fields: {{ form.fields.keys }}</p>
+      </div>
       
       <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
         <div class="sm:col-span-3">

@@ -1,12 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.utils import timezone
 from .models import Transacao, ResumoFinanceiro
+from .forms import TransacaoForm, TransacaoTesteForm
 from django.db.models import Sum
 import json
+import traceback
 
 class TransacaoListView(LoginRequiredMixin, ListView):
     model = Transacao
@@ -83,9 +85,20 @@ class TransacaoCreateView(LoginRequiredMixin, CreateView):
         return initial
      
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Transação registrada com sucesso!')
-        return response
+        print("Form válido! Dados:", form.cleaned_data)
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, 'Transação registrada com sucesso!')
+            return response
+        except Exception as e:
+            print("Erro ao salvar:", str(e))
+            messages.error(self.request, f'Erro ao salvar: {str(e)}')
+            return self.form_invalid(form)
+            
+    def form_invalid(self, form):
+        print("Form inválido! Erros:", form.errors)
+        messages.error(self.request, f'Erro ao validar formulário: {form.errors}')
+        return super().form_invalid(form)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -148,3 +161,56 @@ class ResumoFinanceiroView(LoginRequiredMixin, TemplateView):
         context['data_fim'] = data_fim
         
         return context
+
+
+# View de teste baseada em função para diagnóstico
+def transacao_teste_view(request):
+    """View simplificada para testar o salvamento de transações"""
+    if request.method == 'POST':
+        try:
+            print("\n\n*** POST recebido em transacao_teste_view ***")
+            print("POST data:", request.POST)
+            
+            form = TransacaoTesteForm(request.POST)
+            print("Form bound:", form.is_bound)
+            print("Form errors:", form.errors)
+            
+            if form.is_valid():
+                print("Form válido! Dados limpos:", form.cleaned_data)
+                try:
+                    # Tenta salvar manualmente para ter mais controle
+                    transacao = Transacao(
+                        descricao=form.cleaned_data['descricao'],
+                        tipo=form.cleaned_data['tipo'],
+                        categoria='outros',  # Valor fixo para simplificar
+                        valor=form.cleaned_data['valor'],
+                        data=form.cleaned_data['data']
+                    )
+                    transacao.save()
+                    print("Transação salva com sucesso! ID:", transacao.id)
+                    messages.success(request, f'Transação de teste salva com sucesso! ID: {transacao.id}')
+                    return redirect('financeiro:list')
+                except Exception as e:
+                    print("ERRO AO SALVAR:", str(e))
+                    print(traceback.format_exc())
+                    messages.error(request, f'Erro ao salvar: {str(e)}')
+            else:
+                print("Form inválido! Erros detalhados:", form.errors.as_json())
+                messages.error(request, f'Formulário inválido: {form.errors}')
+        except Exception as e:
+            print("EXCEÇÃO GERAL:", str(e))
+            print(traceback.format_exc())
+            messages.error(request, f'Erro geral: {str(e)}')
+    else:
+        form = TransacaoTesteForm()
+        print("\n\n*** GET recebido em transacao_teste_view ***")
+        print("Form inicializado")
+    
+    return render(request, 'financeiro/transacao_teste_form.html', {
+        'form': form,
+        'debug_info': {
+            'method': request.method,
+            'is_ajax': request.headers.get('x-requested-with') == 'XMLHttpRequest',
+            'content_type': request.content_type,
+        }
+    })

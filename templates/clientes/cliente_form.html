@@ -12,8 +12,20 @@
       {% csrf_token %}
       
       <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+        <!-- Informações de Debug -->
+        {% if form.errors %}
+        <div class="sm:col-span-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <h4 class="font-bold">Erros no formulário:</h4>
+          {{ form.errors }}
+        </div>
+        {% endif %}
+        
         <div class="sm:col-span-3">
           {{ form.nome|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.telefone|as_crispy_field }}
         </div>
         
         <div class="sm:col-span-3">
@@ -27,8 +39,6 @@
         <div class="sm:col-span-6">
           {{ form.endereco|as_crispy_field }}
         </div>
-        
-
       </div>
       
       <div class="mt-6 flex justify-end space-x-3">

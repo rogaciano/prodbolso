@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:pk>/edit/', views.TransacaoUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.TransacaoDeleteView.as_view(), name='delete'),
     path('resumo/', views.ResumoFinanceiroView.as_view(), name='resumo'),
+    path('teste/', views.transacao_teste_view, name='teste'),
 ]

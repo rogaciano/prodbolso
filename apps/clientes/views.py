@@ -47,17 +47,35 @@ class ClienteDetailView(LoginRequiredMixin, DetailView):
         context['saldo'] = saldo
         return context
 
+from .forms import ClienteForm
+
 class ClienteCreateView(LoginRequiredMixin, CreateView):
     model = Cliente
     template_name = 'clientes/cliente_form.html'
-    fields = ['nome', 'telefone', 'endereco', 'contato', 'email']
+    form_class = ClienteForm
     success_url = reverse_lazy('clientes:list')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        return response
+        
+    def form_invalid(self, form):
+        print("Form inválido! Erros:", form.errors)
+        return super().form_invalid(form)
 
 class ClienteUpdateView(LoginRequiredMixin, UpdateView):
     model = Cliente
     template_name = 'clientes/cliente_form.html'
-    fields = ['nome', 'telefone', 'endereco', 'contato', 'email']
+    form_class = ClienteForm
     success_url = reverse_lazy('clientes:list')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        return response
+        
+    def form_invalid(self, form):
+        print("Form inválido! Erros:", form.errors)
+        return super().form_invalid(form)
 
 class ClienteDeleteView(LoginRequiredMixin, DeleteView):
     model = Cliente

@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from datetime import datetime
 
 # Create your models here.
 
@@ -15,7 +16,7 @@ class Funcionario(models.Model):
         
     def get_resumo_producao(self, data_inicio=None, data_fim=None):
         """
-        Calcula o resumo de produção do funcionário por período.
+        Retorna um resumo da produção do funcionário em um período
         
         Args:
             data_inicio: Data inicial do período (opcional)
@@ -24,6 +25,20 @@ class Funcionario(models.Model):
         Returns:
             Um dicionário com as informações de produção
         """
+        
+        # Converter strings para objetos de data, se necessário
+        if isinstance(data_inicio, str):
+            try:
+                data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                data_inicio = None
+                
+        if isinstance(data_fim, str):
+            try:
+                data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            except (ValueError, TypeError):
+                data_fim = None
+        
         if data_inicio is None:
             # Se não foi informada data inicial, considera o início do mês atual
             data_inicio = timezone.now().date().replace(day=1)

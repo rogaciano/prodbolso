@@ -54,21 +54,29 @@ class OrdemServicoListView(LoginRequiredMixin, ListView):
             # Calcular valor total das ordens neste status
             total = qs.aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
             
-            # Calcular valor recebido das ordens neste status
-            # Soma todas as transações de receita vinculadas a ordens deste status
-            recebido = Transacao.objects.filter(
-                ordem_servico__in=qs,
-                tipo='receita',
-                categoria='ordem_servico'
-            ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
+            # Inicializar valores financeiros
+            recebido = Decimal('0.00')
+            a_receber = Decimal('0.00')
             
-            # Calcular valor a receber
-            a_receber = total - recebido
+            # Carregar informações financeiras apenas se o usuário tiver permissão
+            if self.request.user.has_perm('financeiro.view_transacao'):
+                # Calcular valor recebido das ordens neste status
+                # Soma todas as transações de receita vinculadas a ordens deste status
+                recebido = Transacao.objects.filter(
+                    ordem_servico__in=qs,
+                    tipo='receita',
+                    categoria='ordem_servico'
+                ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
+                
+                # Calcular valor a receber
+                a_receber = total - recebido
+                
+                # Acumular totais gerais
+                total_recebido_geral += recebido
+                total_a_receber_geral += a_receber
             
-            # Acumular totais gerais
+            # Acumular total geral (sempre)
             total_geral += total
-            total_recebido_geral += recebido
-            total_a_receber_geral += a_receber
             
             count = qs.count()
             status_summary.append({
@@ -83,8 +91,12 @@ class OrdemServicoListView(LoginRequiredMixin, ListView):
         # Adicionar resumo geral
         context['status_summary'] = status_summary
         context['total_geral'] = total_geral
-        context['total_recebido_geral'] = total_recebido_geral
-        context['total_a_receber_geral'] = total_a_receber_geral
+        context['has_financial_permission'] = self.request.user.has_perm('financeiro.view_transacao')
+        
+        # Adicionar totais financeiros apenas se o usuário tiver permissão
+        if self.request.user.has_perm('financeiro.view_transacao'):
+            context['total_recebido_geral'] = total_recebido_geral
+            context['total_a_receber_geral'] = total_a_receber_geral
         
         return context
 
@@ -95,9 +107,13 @@ class OrdemServicoDetailView(LoginRequiredMixin, DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from apps.financeiro.models import Transacao
-        # Histórico financeiro da OS
-        context['transacoes'] = Transacao.objects.filter(ordem_servico=self.object).order_by('-data')
+        
+        # Verificar se o usuário tem permissão para acessar informações financeiras
+        if self.request.user.has_perm('financeiro.view_transacao'):
+            from apps.financeiro.models import Transacao
+            # Histórico financeiro da OS
+            context['transacoes'] = Transacao.objects.filter(ordem_servico=self.object).order_by('-data')
+        
         return context
 
 class OrdemServicoCreateView(LoginRequiredMixin, CreateView):

@@ -48,7 +48,9 @@ class FuncionarioDetailView(LoginRequiredMixin, DetailView):
             valor_producao = 0
             for item in producao.ordem_servico.itens.all():
                 total_bolsos += item.quantidade
-                valor_producao += item.quantidade * item.custo_producao
+                # Garantir que custo_producao não seja None antes de multiplicar
+                custo = item.custo_producao or 0
+                valor_producao += item.quantidade * custo
             producao.total_bolsos = total_bolsos
             producao.valor_producao = valor_producao
         

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.utils import timezone
 from .models import Transacao, ResumoFinanceiro
@@ -10,11 +10,16 @@ from django.db.models import Sum
 import json
 import traceback
 
-class TransacaoListView(LoginRequiredMixin, ListView):
+class TransacaoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Transacao
     template_name = 'financeiro/transacao_list.html'
     context_object_name = 'transacoes'
     paginate_by = 20
+    permission_required = 'financeiro.view_transacao'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para acessar o módulo financeiro.')
+        return redirect('dashboard:index')
     
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -52,16 +57,26 @@ class TransacaoListView(LoginRequiredMixin, ListView):
         
         return context
 
-class TransacaoDetailView(LoginRequiredMixin, DetailView):
+class TransacaoDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Transacao
     template_name = 'financeiro/transacao_detail.html'
     context_object_name = 'transacao'
+    permission_required = 'financeiro.view_transacao'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para visualizar transações financeiras.')
+        return redirect('dashboard:index')
 
-class TransacaoCreateView(LoginRequiredMixin, CreateView):
+class TransacaoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Transacao
     template_name = 'financeiro/transacao_form.html'
     form_class = TransacaoForm
     success_url = reverse_lazy('financeiro:list')
+    permission_required = 'financeiro.add_transacao'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para adicionar transações financeiras.')
+        return redirect('dashboard:index')
     
     def get_initial(self):
         """Preenche a ordem_servico se 'ordem_servico' estiver na querystring"""
@@ -107,11 +122,16 @@ class TransacaoCreateView(LoginRequiredMixin, CreateView):
         context['despesa_choices_json'] = json.dumps(Transacao.CATEGORIA_DESPESA_CHOICES)
         return context
 
-class TransacaoUpdateView(LoginRequiredMixin, UpdateView):
+class TransacaoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Transacao
     template_name = 'financeiro/transacao_form.html'
     form_class = TransacaoForm
     success_url = reverse_lazy('financeiro:list')
+    permission_required = 'financeiro.change_transacao'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para editar transações financeiras.')
+        return redirect('dashboard:index')
     
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -126,17 +146,27 @@ class TransacaoUpdateView(LoginRequiredMixin, UpdateView):
         context['despesa_choices_json'] = json.dumps(Transacao.CATEGORIA_DESPESA_CHOICES)
         return context
 
-class TransacaoDeleteView(LoginRequiredMixin, DeleteView):
+class TransacaoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Transacao
     template_name = 'financeiro/transacao_confirm_delete.html'
     success_url = reverse_lazy('financeiro:list')
+    permission_required = 'financeiro.delete_transacao'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para excluir transações financeiras.')
+        return redirect('dashboard:index')
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Transação excluída com sucesso!')
         return super().delete(request, *args, **kwargs)
 
-class ResumoFinanceiroView(LoginRequiredMixin, TemplateView):
+class ResumoFinanceiroView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'financeiro/resumo_financeiro.html'
+    permission_required = 'financeiro.view_transacao'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'Você não tem permissão para acessar o resumo financeiro.')
+        return redirect('dashboard:index')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -162,8 +192,16 @@ class ResumoFinanceiroView(LoginRequiredMixin, TemplateView):
 
 
 # View de teste baseada em função para diagnóstico
+from django.contrib.auth.decorators import login_required, permission_required
+
+@login_required
+@permission_required('financeiro.add_transacao', raise_exception=False)
 def transacao_teste_view(request):
     """View simplificada para testar o salvamento de transações"""
+    # Verificar permissão manualmente para poder redirecionar com mensagem
+    if not request.user.has_perm('financeiro.add_transacao'):
+        messages.error(request, 'Você não tem permissão para adicionar transações financeiras.')
+        return redirect('dashboard:index')
     if request.method == 'POST':
         try:
             print("\n\n*** POST recebido em transacao_teste_view ***")

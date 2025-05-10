@@ -99,7 +99,7 @@
     </button>
   {% endif %}
   
-  {% if ordem.status == 'entregue' and ordem.valor_recebido < ordem.valor_total %}
+  {% if ordem.status == 'entregue' and perms.financeiro.add_transacao and ordem.valor_recebido < ordem.valor_total %}
     <a href="{% url 'financeiro:add' %}?ordem_servico={{ ordem.id }}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
       <i class="fas fa-credit-card mr-2"></i> Registrar Pagamento
     </a>
@@ -155,12 +155,14 @@
         <dt class="text-sm font-medium text-gray-500">Valor Total</dt>
         <dd class="mt-1 text-sm font-bold text-gray-900 sm:mt-0 sm:col-span-2">R$ {{ ordem.valor_total|floatformat:2 }}</dd>
       </div>
+      {% if perms.financeiro.view_transacao %}
       <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Pagamento Recebido</dt>
         {% if ordem.pago %}
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Sim</dd>
         {% endif %}
       </div>
+      {% endif %}
       <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
         <dt class="text-sm font-medium text-gray-500">Observações</dt>
         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden;">{{ ordem.observacoes|default:"-"|linebreaks }}</dd>
@@ -290,6 +292,7 @@
 {% endif %}
 
 <!-- Histórico Financeiro -->
+{% if perms.financeiro.view_transacao %}
 <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
   <div class="px-4 py-5 sm:px-6">
     <h2 class="text-lg leading-6 font-medium text-gray-900">Histórico Financeiro</h2>
@@ -323,6 +326,7 @@
     </table>
   </div>
 </div>
+{% endif %}
 
 
 <!-- Modal for Delivery Registration -->

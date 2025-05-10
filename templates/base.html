@@ -16,12 +16,13 @@
     <!-- Navigation Bar -->
     <nav class="bg-blue-600 text-white shadow-md">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+        <div class="flex justify-between h-16 py-0.5">
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
+              <img src="{% get_media_prefix %}FabiusBrigiteLogo.png" alt="Logo" class="h-16 w-auto mr-3">
               <span class="text-xl font-bold">Bolsos Fabius Brigite</span>
             </div>
-            <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4">
+            <div class="hidden md:ml-6 md:flex md:items-center md:space-x-4 md:self-center">
               <a href="{% url 'dashboard:index' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Dashboard</a>
               <a href="{% url 'clientes:list' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Clientes</a>
               <a href="{% url 'funcionarios:list' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Funcionários</a>
@@ -30,7 +31,7 @@
               <a href="{% url 'financeiro:list' %}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Financeiro</a>
             </div>
           </div>
-          <div class="flex items-center">
+          <div class="flex items-center self-center">
             <div class="ml-3 relative" x-data="{ isOpen: false }">
               <div>
                 <button @click="isOpen = !isOpen" class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-600 focus:ring-white">

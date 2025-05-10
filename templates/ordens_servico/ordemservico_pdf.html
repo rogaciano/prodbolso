@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html>
+{% load static %}
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Ordem de Serviço #{{ ordem.ficha }}</title>
@@ -12,7 +13,7 @@
             }
             body {
                 width: 148mm; /* Largura A5 */
-                height: 210mm; /* Altura A5 */
+                height: 105mm; /* Altura A5 */
                 margin: 0;
                 padding: 1cm;
                 box-sizing: border-box;
@@ -32,7 +33,7 @@
             max-width: 148mm;
             margin: 0 auto;
             padding: 1cm;
-            border: 1px dashed #ccc;
+            /* Borda removida para evitar problemas de impressão */
         }
         h1 {
             font-size: 16px;
@@ -96,8 +97,11 @@
 <body>
     <!-- Botão de impressão (não aparece quando imprimir) -->
     <button onclick="window.print()" class="print-button no-print">Imprimir Ordem de Serviço</button>
-    
-    <h1>BOLSO PRONTO</h1>
+
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 1.2px; margin-top: 0.4px;">
+        <img src="{% get_media_prefix %}FabiusBrigiteLogo.png" alt="Logo" style="height: 60px; margin-bottom: 0.0px;">
+        <h1>Bolsos Fabius Brigite</h1>
+    </div>
     <h2>Ordem de Serviço #{{ ordem.ficha }}</h2>
     
     <div class="info"><strong>Cliente:</strong> {{ ordem.cliente.nome }}</div>

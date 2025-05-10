@@ -44,10 +44,11 @@ class OrdemServicoForm(forms.ModelForm):
 class ItemOrdemServicoForm(forms.ModelForm):
     class Meta:
         model = ItemOrdemServico
-        fields = ['tipo_bolso', 'quantidade', 'valor_unitario']
+        fields = ['tipo_bolso', 'cor_linha', 'quantidade', 'valor_unitario', 'custo_producao']
         widgets = {
-            'tipo_bolso': forms.Select(attrs={'onchange': 'atualizarValorUnitario(this.value)'}),
+            'tipo_bolso': forms.Select(attrs={'onchange': 'atualizarValorECusto(this.value)'}),
             'valor_unitario': forms.NumberInput(attrs={'step': '0.01'}),
+            'custo_producao': forms.NumberInput(attrs={'step': '0.01', 'readonly': True, 'class': 'bg-gray-100'}),
         }
     
     def __init__(self, *args, **kwargs):

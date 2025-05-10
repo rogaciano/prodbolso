@@ -27,8 +27,35 @@ class FuncionarioDetailView(LoginRequiredMixin, DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Adiciona resumo de produção do funcionário para o mês atual
-        context['resumo_producao'] = self.object.get_resumo_producao()
+        
+        # Obter parâmetros de filtro
+        data_inicio = self.request.GET.get('data_inicio')
+        data_fim = self.request.GET.get('data_fim')
+        
+        # Adiciona resumo de produção do funcionário com filtros
+        context['resumo_producao'] = self.object.get_resumo_producao(data_inicio, data_fim)
+        
+        # Obter produções do funcionário com filtros
+        producoes = self.object.producaoos_set.all()
+        if data_inicio:
+            producoes = producoes.filter(data_inicio__gte=data_inicio)
+        if data_fim:
+            producoes = producoes.filter(data_inicio__lte=data_fim)
+            
+        # Calcular o valor total da produção para cada item
+        for producao in producoes:
+            total_bolsos = 0
+            valor_producao = 0
+            for item in producao.ordem_servico.itens.all():
+                total_bolsos += item.quantidade
+                valor_producao += item.quantidade * item.custo_producao
+            producao.total_bolsos = total_bolsos
+            producao.valor_producao = valor_producao
+        
+        context['producoes'] = producoes
+        context['data_inicio'] = data_inicio
+        context['data_fim'] = data_fim
+        
         return context
 
 from .forms import FuncionarioForm

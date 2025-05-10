@@ -40,15 +40,52 @@ class OrdemServicoListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['status_choices'] = OrdemServico.STATUS_CHOICES
+        
         # Resumo por status
         all_orders = self.model.objects.all()
         status_summary = []
+        total_geral = Decimal('0.00')
+        total_recebido_geral = Decimal('0.00')
+        total_a_receber_geral = Decimal('0.00')
+        
         for key, display in self.model.STATUS_CHOICES:
             qs = all_orders.filter(status=key)
+            
+            # Calcular valor total das ordens neste status
             total = qs.aggregate(total=Sum('valor_total'))['total'] or Decimal('0.00')
+            
+            # Calcular valor recebido das ordens neste status
+            # Soma todas as transações de receita vinculadas a ordens deste status
+            recebido = Transacao.objects.filter(
+                ordem_servico__in=qs,
+                tipo='receita',
+                categoria='ordem_servico'
+            ).aggregate(total=Sum('valor'))['total'] or Decimal('0.00')
+            
+            # Calcular valor a receber
+            a_receber = total - recebido
+            
+            # Acumular totais gerais
+            total_geral += total
+            total_recebido_geral += recebido
+            total_a_receber_geral += a_receber
+            
             count = qs.count()
-            status_summary.append({'key': key, 'display': display, 'count': count, 'total': total})
+            status_summary.append({
+                'key': key, 
+                'display': display, 
+                'count': count, 
+                'total': total,
+                'recebido': recebido,
+                'a_receber': a_receber
+            })
+        
+        # Adicionar resumo geral
         context['status_summary'] = status_summary
+        context['total_geral'] = total_geral
+        context['total_recebido_geral'] = total_recebido_geral
+        context['total_a_receber_geral'] = total_a_receber_geral
+        
         return context
 
 class OrdemServicoDetailView(LoginRequiredMixin, DetailView):
@@ -328,6 +365,7 @@ class ProducaoOSEntregarView(LoginRequiredMixin, View):
                 descricao=f"Pagamento OS #{producao.ordem_servico.ficha}",
                 tipo='receita',
                 categoria='ordem_servico',
+                forma_pagamento=forma_pagamento,
                 valor=valor,
                 data=timezone.now().date(),
                 ordem_servico=producao.ordem_servico

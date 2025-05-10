@@ -114,6 +114,9 @@
         <strong>{{ item.tipo_bolso.nome }}</strong> - 
         {{ item.quantidade }} x R$ {{ item.valor_unitario|floatformat:2 }} = 
         R$ {{ item.subtotal|floatformat:2 }}
+        {% if item.cor_linha %}
+        <span style="margin-left: 10px; padding: 2px 5px; background-color: #f5f5f5; border-radius: 3px;"><strong>Cor da linha:</strong> {{ item.cor_linha }}</span>
+        {% endif %}
     </div>
     {% endfor %}
     

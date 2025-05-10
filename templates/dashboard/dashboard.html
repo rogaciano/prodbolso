@@ -126,6 +126,48 @@
     </div>
   </div>
 
+  <!-- Valores a Receber -->
+  <div class="bg-white overflow-hidden shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Valores a Receber por Status</h3>
+      
+      <!-- Cards de status -->
+      <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        {% for s in status_financeiro %}
+          {% if s.a_receber > 0 %}
+          <div class="{% if s.key == 'pendente' %}bg-yellow-50{% elif s.key == 'em_producao' %}bg-blue-50{% elif s.key == 'finalizado' %}bg-green-50{% elif s.key == 'entregue' %}bg-purple-50{% elif s.key == 'cancelado' %}bg-red-50{% else %}bg-white{% endif %} rounded-md p-3 border border-gray-200">
+            <p class="text-sm font-medium text-gray-500">{{ s.display }}</p>
+            <p class="mt-1 text-lg font-semibold text-blue-600">R$ {{ s.a_receber|floatformat:2 }}</p>
+            <div class="mt-2 text-xs text-gray-500">
+              <div class="flex justify-between">
+                <span>Total:</span>
+                <span>R$ {{ s.total|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Recebido:</span>
+                <span>R$ {{ s.recebido|floatformat:2 }}</span>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      
+      <!-- Total Geral a Receber -->
+      <div class="mt-5 bg-gray-50 p-4 rounded-lg">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-sm font-medium text-gray-500">Total Geral a Receber</p>
+            <p class="text-lg font-semibold text-blue-600">R$ {{ total_a_receber_geral|floatformat:2 }}</p>
+          </div>
+          <a href="{% url 'ordens_servico:list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+            Ver detalhes <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Informações Gerais -->
   <div class="bg-white overflow-hidden shadow rounded-lg">
     <div class="px-4 py-5 sm:p-6">

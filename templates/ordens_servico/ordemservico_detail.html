@@ -185,6 +185,7 @@
       <thead class="bg-gray-50">
         <tr>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Bolso</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cor da Linha</th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Unitário</th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
@@ -198,6 +199,9 @@
           <tr>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">{{ item.tipo_bolso.nome }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ item.cor_linha|default:"--" }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">{{ item.quantidade }}</div>
@@ -297,6 +301,7 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forma Pagamento</th>
           <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
         </tr>
       </thead>
@@ -306,11 +311,12 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ trans.data|date:"d/m/Y" }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.descricao }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.get_categoria_display }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ trans.get_forma_pagamento_display|default:"-" }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">R$ {{ trans.valor|floatformat:2 }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Nenhuma transação registrada.</td>
+            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Nenhuma transação registrada.</td>
           </tr>
         {% endfor %}
       </tbody>

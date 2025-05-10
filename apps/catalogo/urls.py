@@ -9,4 +9,7 @@ urlpatterns = [
     path('<int:pk>/', views.TipoBolsoDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', views.TipoBolsoUpdateView.as_view(), name='edit'),
     path('<int:pk>/delete/', views.TipoBolsoDeleteView.as_view(), name='delete'),
+    
+    # API
+    path('api/<int:pk>/', views.tipo_bolso_api, name='api'),
 ]

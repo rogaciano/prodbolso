@@ -4,7 +4,7 @@ from .models import Transacao
 class TransacaoForm(forms.ModelForm):
     class Meta:
         model = Transacao
-        fields = ['descricao', 'tipo', 'categoria', 'valor', 'data', 'ordem_servico', 'observacoes', 'comprovante']
+        fields = ['descricao', 'tipo', 'categoria', 'forma_pagamento', 'valor', 'data', 'ordem_servico', 'observacoes', 'comprovante']
         widgets = {
             # limitar observações a uma linha
             'observacoes': forms.Textarea(attrs={
@@ -12,12 +12,29 @@ class TransacaoForm(forms.ModelForm):
                 'class': 'resize-none h-8'
             }),
         }
+        
+    class Media:
+        js = ('js/transacao_form.js',)
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrar categorias com base no tipo selecionado
+        tipo = None
+        if self.data.get('tipo'):
+            tipo = self.data.get('tipo')
+        elif self.instance and self.instance.pk:
+            tipo = self.instance.tipo
+            
+        if tipo == 'receita':
+            self.fields['categoria'].choices = Transacao.CATEGORIA_RECEITA_CHOICES
+        elif tipo == 'despesa':
+            self.fields['categoria'].choices = Transacao.CATEGORIA_DESPESA_CHOICES
 
 # Formulário de teste simplificado para diagnóstico
 class TransacaoTesteForm(forms.ModelForm):
     class Meta:
         model = Transacao
-        fields = ['descricao', 'tipo', 'valor', 'data']
+        fields = ['descricao', 'tipo', 'valor', 'data', 'forma_pagamento']
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

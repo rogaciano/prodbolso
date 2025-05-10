@@ -84,20 +84,38 @@ class OrdemServico(models.Model):
 class ItemOrdemServico(models.Model):
     ordem_servico = models.ForeignKey(OrdemServico, related_name='itens', on_delete=models.CASCADE)
     tipo_bolso = models.ForeignKey('catalogo.TipoBolso', on_delete=models.PROTECT)
+    cor_linha = models.CharField(max_length=100, blank=True, help_text='Cor da linha utilizada')
     quantidade = models.PositiveIntegerField()
     valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    custo_producao = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Custo de produção por unidade')
     
     @property
     def subtotal(self):
         return self.quantidade * self.valor_unitario
+    
+    @property
+    def valor_producao(self):
+        """Calcula o valor total da produção (quantidade * custo_producao)"""
+        return self.quantidade * self.custo_producao
         
     def __str__(self):
-        return f"{self.quantidade} x {self.tipo_bolso.nome}"
+        return f"{self.tipo_bolso.nome} - {self.quantidade} unidades"
         
     def save(self, *args, **kwargs):
-        if not self.valor_unitario:
-            # Se o valor unitário não foi definido, usa o valor padrão do tipo de bolso
+        # Preenche o valor unitário se não estiver definido
+        if not self.valor_unitario and self.tipo_bolso_id:
             self.valor_unitario = self.tipo_bolso.valor_padrao
+            
+        # Sempre preenche o custo de produção com o valor do tipo de bolso
+        if self.tipo_bolso_id:
+            from apps.catalogo.models import TipoBolso
+            try:
+                tipo_bolso = TipoBolso.objects.get(pk=self.tipo_bolso_id)
+                self.custo_producao = tipo_bolso.custo_producao
+            except TipoBolso.DoesNotExist:
+                pass
+                
+        # Salva o item
         super().save(*args, **kwargs)
         
         # Recalcula o valor total da ordem de serviço

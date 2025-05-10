@@ -21,13 +21,7 @@
   {% endif %}
       {% csrf_token %}
       
-      <!-- Informações de Debug -->
-      <div class="bg-gray-100 p-3 mb-4 rounded">
-        <p><strong>Debug:</strong> Request method: {{ request.method }}</p>
-        <p>Form is bound: {{ form.is_bound }}</p>
-        <p>Form has changed data: {{ form.has_changed }}</p>
-        <p>Form fields: {{ form.fields.keys }}</p>
-      </div>
+      <!-- Mensagens de erro ou sucesso serão exibidas aqui -->
       
       <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
         <div class="sm:col-span-3">
@@ -48,6 +42,10 @@
         
         <div class="sm:col-span-3">
           {{ form.data|as_crispy_field }}
+        </div>
+        
+        <div class="sm:col-span-3">
+          {{ form.forma_pagamento|as_crispy_field }}
         </div>
         
         <div class="sm:col-span-3">

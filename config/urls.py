@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from apps.catalogo.views import tipo_bolso_api
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +30,9 @@ urlpatterns = [
     path('funcionarios/', include('apps.funcionarios.urls')),
     path('clientes/', include('apps.clientes.urls')),
     path('catalogo/', include('apps.catalogo.urls')),
+    
+    # API para tipos de bolso
+    path('api/tipos-bolso/<int:pk>/', tipo_bolso_api, name='tipo_bolso_api'),
     path('ordens/', include('apps.ordens_servico.urls')),
     path('financeiro/', include('apps.financeiro.urls')),
     path('api/catalogo/', include('apps.catalogo.urls_api')),

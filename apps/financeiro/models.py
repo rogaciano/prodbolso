@@ -25,9 +25,23 @@ class Transacao(models.Model):
         ('outros', 'Outros'),
     ]
     
+    # Combinar todas as categorias para o campo de escolhas
+    CATEGORIA_CHOICES = CATEGORIA_RECEITA_CHOICES + CATEGORIA_DESPESA_CHOICES
+    
+    FORMA_PAGAMENTO_CHOICES = [
+        ('dinheiro', 'Dinheiro'),
+        ('pix', 'PIX'),
+        ('cartao_credito', 'Cartão de Crédito'),
+        ('cartao_debito', 'Cartão de Débito'),
+        ('transferencia', 'Transferência Bancária'),
+        ('boleto', 'Boleto'),
+        ('outro', 'Outro'),
+    ]
+    
     descricao = models.CharField(max_length=200)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
-    categoria = models.CharField(max_length=20)
+    categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES)
+    forma_pagamento = models.CharField(max_length=20, choices=FORMA_PAGAMENTO_CHOICES, null=True, blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField()
     ordem_servico = models.ForeignKey('ordens_servico.OrdemServico', 

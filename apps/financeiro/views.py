@@ -60,8 +60,7 @@ class TransacaoDetailView(LoginRequiredMixin, DetailView):
 class TransacaoCreateView(LoginRequiredMixin, CreateView):
     model = Transacao
     template_name = 'financeiro/transacao_form.html'
-    fields = ['descricao', 'tipo', 'categoria', 'valor', 'data', 
-              'ordem_servico', 'observacoes', 'comprovante']
+    form_class = TransacaoForm
     success_url = reverse_lazy('financeiro:list')
     
     def get_initial(self):
@@ -111,8 +110,7 @@ class TransacaoCreateView(LoginRequiredMixin, CreateView):
 class TransacaoUpdateView(LoginRequiredMixin, UpdateView):
     model = Transacao
     template_name = 'financeiro/transacao_form.html'
-    fields = ['descricao', 'tipo', 'categoria', 'valor', 'data', 
-              'ordem_servico', 'observacoes', 'comprovante']
+    form_class = TransacaoForm
     success_url = reverse_lazy('financeiro:list')
     
     def form_valid(self, form):

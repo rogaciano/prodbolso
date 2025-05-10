@@ -1,5 +1,5 @@
 """
-Development settings for Bolso Niran project.
+Development settings for Bolsos Fabius Brigite project.
 """
 
 from .base import *

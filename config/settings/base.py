@@ -1,5 +1,5 @@
 """
-Base settings for Bolso Niran project.
+Base settings for Bolsos Fabius Brigite project.
 """
 
 import os

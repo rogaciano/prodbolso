@@ -1,5 +1,5 @@
 """
-Production settings for Bolso Niran project.
+Production settings for Bolsos Fabius Brigite project.
 """
 
 import os
